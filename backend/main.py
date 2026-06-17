@@ -34,9 +34,11 @@ app.add_middleware(
     allow_headers=["Content-Type"],
 )
 
+from services.groq_client import MODEL_ROUTES
+
 @app.get("/health")
 def health():
-    return {"status": "ok", "model": settings.gemini_model}
+    return {"status": "ok", "provider": "groq", "models": MODEL_ROUTES}
 
 @app.post("/analyze", response_model=AnalyzeResponse)
 async def analyze(req: AnalyzeRequest):

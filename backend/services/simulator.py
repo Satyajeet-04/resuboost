@@ -1,4 +1,4 @@
-from services.gemini_client import GeminiClient
+from services.groq_client import GroqClient
 import json
 
 def build_simulate_prompt(resume: str, role: str) -> str:
@@ -30,7 +30,7 @@ Rules:
 
 class Simulator:
     def __init__(self):
-        self.client = GeminiClient()
+        self.client = GroqClient(task_type="simulate")
 
     def simulate(self, resume: str, role: str) -> dict:
         prompt = build_simulate_prompt(resume, role)

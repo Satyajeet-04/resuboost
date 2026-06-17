@@ -1,7 +1,6 @@
-from services.gemini_client import GeminiClient
+from services.groq_client import GroqClient
 import json
 from config import settings
-import json
 
 SYSTEM_INSTRUCTION = """You are a senior technical recruiter at a top tech company.
 You review thousands of resumes against job descriptions.
@@ -39,7 +38,7 @@ Rules:
 
 class GapAnalyzer:
     def __init__(self):
-        self.client = GeminiClient()
+        self.client = GroqClient(task_type="analyze")
 
     def analyze(self, resume: str, jd: str) -> dict:
         prompt = build_analyze_prompt(resume, jd)

@@ -1,4 +1,4 @@
-from services.gemini_client import GeminiClient
+from services.groq_client import GroqClient
 import json
 
 def build_rewrite_prompt(resume: str, skill: str, context: str = "") -> str:
@@ -26,7 +26,7 @@ Rules:
 
 class Rewriter:
     def __init__(self):
-        self.client = GeminiClient()
+        self.client = GroqClient(task_type="rewrite")
 
     def rewrite(self, resume: str, skill: str, context: str = "") -> dict:
         prompt = build_rewrite_prompt(resume, skill, context)

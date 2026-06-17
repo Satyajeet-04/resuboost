@@ -2,8 +2,7 @@ import os
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
-    gemini_model: str = "gemini-2.5-flash"
+    groq_api_key: str = os.getenv("GROQ_API_KEY", "")
     max_tokens: int = 2048
     temperature: float = 0.2
     strip_pii: bool = True
