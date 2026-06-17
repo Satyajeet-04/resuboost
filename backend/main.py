@@ -13,7 +13,7 @@ app = FastAPI(title="ResuBoost API", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://satyajeet-rp.github.io",
+        "https://satyajeet-04.github.io",
         "http://localhost:5500",
         "http://127.0.0.1:5500",
         "http://localhost:3000",
