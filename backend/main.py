@@ -4,6 +4,7 @@ from models.schemas import *
 from services.gap_analyzer import GapAnalyzer
 from services.rewriter import Rewriter
 from services.simulator import Simulator
+from services.full_rewriter import FullRewriter
 from utils.sanitizer import sanitize
 from config import settings
 import json
@@ -58,6 +59,20 @@ async def rewrite(req: RewriteRequest):
         raise HTTPException(502, "AI returned invalid response format")
     except Exception as e:
         raise HTTPException(500, f"Rewrite failed: {str(e)}")
+
+@app.post("/full_rewrite", response_model=FullRewriteResponse)
+async def full_rewrite(req: FullRewriteRequest):
+    safe_resume = sanitize(req.resume) if settings.strip_pii else req.resume
+    if len(safe_resume) > settings.max_input_length:
+        safe_resume = safe_resume[:settings.max_input_length]
+
+    try:
+        result = FullRewriter().full_rewrite(safe_resume, req.gaps, req.job_description)
+        return result
+    except json.JSONDecodeError:
+        raise HTTPException(502, "AI returned invalid response format")
+    except Exception as e:
+        raise HTTPException(500, f"Full rewrite failed: {str(e)}")
 
 @app.post("/simulate", response_model=SimulateResponse)
 async def simulate(req: SimulateRequest):

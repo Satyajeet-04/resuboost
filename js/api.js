@@ -48,6 +48,14 @@ const api = (() => {
         role: role
       });
     }
+
+    async fullRewrite(resumeText, gaps, jdText) {
+      return this.request('/full_rewrite', {
+        resume: resumeText,
+        gaps: gaps,
+        job_description: jdText
+      });
+    }
   }
 
   return { client: new BackendClient() };

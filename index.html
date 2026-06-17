@@ -65,8 +65,26 @@
         </div>
         <div id="gap-list"></div>
         <div class="btn-group">
+          <button id="full-rewrite-btn" class="btn btn-primary">Generate Full Rewritten Resume</button>
           <button id="simulate-btn" class="btn btn-primary">Simulate Recruiter Search</button>
           <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="step-full-rewrite" class="step hidden">
+      <div class="card">
+        <h2>Your Rewritten Resume</h2>
+        <p>The full resume has been rewritten to address all identified gaps.</p>
+        <div id="full-rewrite-result" class="hidden">
+          <h4>Changes Made</h4>
+          <ul id="full-rewrite-changes" style="margin-bottom:16px"></ul>
+          <h4>Complete Resume</h4>
+          <pre id="full-rewrite-text" style="white-space:pre-wrap;background:#f8f9fa;padding:16px;border-radius:8px;font-size:0.9rem;line-height:1.6;max-height:500px;overflow-y:auto"></pre>
+          <div class="btn-group">
+            <button id="copy-full-rewrite" class="btn btn-primary" onclick="(() => { navigator.clipboard.writeText(document.getElementById('full-rewrite-text').textContent).then(() => { const b=document.getElementById('copy-full-rewrite'); b.textContent='Copied!'; setTimeout(()=>b.textContent='Copy to Clipboard',2000); }); })()">Copy to Clipboard</button>
+            <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
+          </div>
         </div>
       </div>
     </div>

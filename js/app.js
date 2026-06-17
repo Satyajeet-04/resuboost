@@ -107,6 +107,14 @@ window.app = (() => {
       ui.show('step-analyze');
     });
 
+    document.getElementById('back-to-analyze-from-rewrite')?.addEventListener('click', () => {
+      ui.show('step-analyze');
+    });
+
+    document.getElementById('full-rewrite-btn')?.addEventListener('click', fullRewrite);
+
+    document.getElementById('new-analysis-btn')?.addEventListener('click', reset);
+
     document.getElementById('copy-rewrite')?.addEventListener('click', () => {
       const bullets = document.querySelectorAll('#rewritten-bullets li');
       const text = Array.from(bullets).map(li => li.textContent).join('\n');
@@ -188,6 +196,28 @@ window.app = (() => {
     }
   }
 
+  async function fullRewrite() {
+    ui.hideError();
+
+    if (!state.gaps || state.gaps.length === 0) {
+      ui.showError('No gaps to address. Run analysis first.');
+      return;
+    }
+
+    const gapSkills = state.gaps.map(g => g.skill);
+    ui.setLoading('full-rewrite-btn', true);
+
+    try {
+      const result = await api.client.fullRewrite(state.resumeText, gapSkills, state.jdText);
+      ui.renderFullRewrite(result.full_resume, result.changes_summary);
+      ui.show('step-full-rewrite');
+    } catch (err) {
+      ui.showError(`Full rewrite failed: ${err.message}`);
+    } finally {
+      ui.setLoading('full-rewrite-btn', false);
+    }
+  }
+
   function reset() {
     state.resumeText = null;
     state.resumeFile = null;
@@ -223,5 +253,5 @@ window.app = (() => {
   }
 
   document.addEventListener('DOMContentLoaded', init);
-  return { init, analyze, rewrite, simulate, reset };
+  return { init, analyze, rewrite, fullRewrite, simulate, reset };
 })();

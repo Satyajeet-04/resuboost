@@ -113,6 +113,24 @@ const ui = (() => {
     });
   }
 
+  function renderFullRewrite(fullResume, changesSummary) {
+    const container = $('#full-rewrite-result');
+    if (!container) return;
+    container.classList.remove('hidden');
+
+    const resumeEl = $('#full-rewrite-text');
+    if (resumeEl) {
+      resumeEl.textContent = fullResume;
+    }
+
+    const changesEl = $('#full-rewrite-changes');
+    if (changesEl) {
+      changesEl.innerHTML = changesSummary
+        ? changesSummary.split('\n').filter(l => l.trim()).map(l => `<li>${escapeHtml(l.replace(/^[-*]\s*/, ''))}</li>`).join('')
+        : '<li>Full resume rewritten to better match the target role</li>';
+    }
+  }
+
   function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
@@ -132,5 +150,5 @@ const ui = (() => {
     if (el) el.classList.add('hidden');
   }
 
-  return { show, setLoading, renderGaps, renderRewrite, renderSimulation, showError, hideError, escapeHtml };
+  return { show, setLoading, renderGaps, renderRewrite, renderFullRewrite, renderSimulation, showError, hideError, escapeHtml };
 })();

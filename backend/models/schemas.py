@@ -24,6 +24,15 @@ class RewriteResponse(BaseModel):
     rewritten: list[str]
     explanation: str
 
+class FullRewriteRequest(BaseModel):
+    resume: str = Field(..., max_length=50000)
+    gaps: list[str] = Field(..., description="List of skills to address")
+    job_description: str = Field(..., max_length=50000)
+
+class FullRewriteResponse(BaseModel):
+    full_resume: str = Field(..., description="Complete rewritten resume text")
+    changes_summary: str = Field("", description="What was changed and why")
+
 class SimulateRequest(BaseModel):
     resume: str = Field(..., max_length=50000)
     role: str = Field(..., max_length=500)
