@@ -109,12 +109,10 @@ window.app = (() => {
     document.getElementById('questions-btn')?.addEventListener('click', generateQuestions);
     document.getElementById('ats-breakdown-btn')?.addEventListener('click', atsBreakdown);
 
-    document.getElementById('back-to-analyze')?.addEventListener('click', () => {
-      ui.show('step-analyze');
-    });
-
-    document.getElementById('back-to-analyze-from-rewrite')?.addEventListener('click', () => {
-      ui.show('step-analyze');
+    document.querySelectorAll('.back-to-analyze-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        ui.show('step-analyze');
+      });
     });
 
     document.getElementById('full-rewrite-btn')?.addEventListener('click', fullRewrite);

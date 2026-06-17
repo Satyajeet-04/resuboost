@@ -90,6 +90,7 @@
             <button id="copy-full-rewrite" class="btn btn-primary" onclick="(() => { navigator.clipboard.writeText(document.getElementById('full-rewrite-text').textContent).then(() => { const b=document.getElementById('copy-full-rewrite'); b.textContent='Copied!'; setTimeout(()=>b.textContent='Copy to Clipboard',2000); }); })()">Copy to Clipboard</button>
             <button id="download-txt" class="btn btn-primary" style="background:#0891b2;border-color:#0891b2">Download as Text</button>
             <button id="download-pdf" class="btn btn-primary" style="background:#7c3aed;border-color:#7c3aed">Save as PDF</button>
+            <button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button>
             <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
           </div>
         </div>
@@ -108,6 +109,7 @@
           </div>
           <div class="btn-group">
             <button id="download-cover-letter" class="btn btn-primary" style="background:#7c3aed;border-color:#7c3aed">Download as Text</button>
+            <button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button>
             <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
           </div>
         </div>
@@ -123,6 +125,7 @@
           <h4>Keywords</h4>
           <div id="keyword-list"></div>
           <div class="btn-group">
+            <button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button>
             <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
           </div>
         </div>
@@ -148,6 +151,7 @@
           <h4 style="margin-top:16px">Priority Fixes</h4>
           <ol id="score-fixes" style="background:#fefce8;padding:16px 32px;border-radius:8px"></ol>
           <div class="btn-group">
+            <button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button>
             <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
           </div>
         </div>
@@ -161,6 +165,7 @@
         <div id="questions-result" class="hidden">
           <div id="questions-list"></div>
           <div class="btn-group">
+            <button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button>
             <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
           </div>
         </div>
@@ -193,6 +198,7 @@
           <h4 style="margin-top:12px">Action Items</h4>
           <ul id="ats-actions" style="background:#f0fdf4;padding:16px 32px;border-radius:8px"></ul>
           <div class="btn-group">
+            <button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button>
             <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
           </div>
         </div>
@@ -244,6 +250,7 @@
           </table>
         </div>
         <div class="btn-group">
+          <button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button>
           <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
         </div>
       </div>
