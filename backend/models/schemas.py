@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Literal
+from typing import Literal, Optional
 
 class AnalyzeRequest(BaseModel):
     resume: str = Field(..., max_length=50000, description="Full resume text")
@@ -45,3 +45,106 @@ class SimQuery(BaseModel):
 class SimulateResponse(BaseModel):
     queries: list[SimQuery]
     match_rate: int = Field(..., ge=0, le=100)
+
+# --- Cover Letter ---
+class CoverLetterRequest(BaseModel):
+    resume: str = Field(..., max_length=50000)
+    job_description: str = Field(..., max_length=50000)
+
+class CoverLetterResponse(BaseModel):
+    cover_letter: str
+    subject_line: str = ""
+    key_points: list[str] = []
+
+# --- Keywords ---
+class KeywordItem(BaseModel):
+    keyword: str
+    in_resume: bool
+    importance: Literal["high", "medium", "low"]
+    category: str = ""
+    suggestion: str = ""
+
+class KeywordStats(BaseModel):
+    total_keywords: int
+    matched: int
+    missing: int
+    coverage_pct: int
+
+class KeywordRequest(BaseModel):
+    resume: str = Field(..., max_length=50000)
+    job_description: str = Field(..., max_length=50000)
+
+class KeywordResponse(BaseModel):
+    keywords: list[KeywordItem]
+    stats: KeywordStats
+    top_missing: list[str] = []
+    recommendation: str = ""
+
+# --- Resume Score ---
+class ScoreItem(BaseModel):
+    category: str
+    score: int = Field(..., ge=0, le=100)
+    max_score: int = 100
+    reason: str
+    tip: str = ""
+
+class ScoreRequest(BaseModel):
+    resume: str = Field(..., max_length=50000)
+    job_description: str = Field(..., max_length=50000)
+
+class ScoreResponse(BaseModel):
+    overall_score: int = Field(..., ge=0, le=100)
+    scores: list[ScoreItem]
+    strengths: list[str] = []
+    weaknesses: list[str] = []
+    priority_fixes: list[str] = []
+
+# --- Interview Questions ---
+class QuestionItem(BaseModel):
+    question: str
+    category: str = ""
+    difficulty: str = ""
+    why_asked: str = ""
+    preparation_tip: str = ""
+
+class InterviewQuestionsRequest(BaseModel):
+    resume: str = Field(..., max_length=50000)
+    job_description: str = Field(..., max_length=50000)
+    gaps: list[str] = []
+
+class InterviewQuestionsResponse(BaseModel):
+    questions: list[QuestionItem]
+    total_questions: int = 0
+    categories_covered: list[str] = []
+
+# --- ATS Breakdown ---
+class AtsParseability(BaseModel):
+    score: int = Field(..., ge=0, le=100)
+    issues: list[str] = []
+
+class AtsKeywordMatch(BaseModel):
+    score: int = Field(..., ge=0, le=100)
+    matched: list[str] = []
+    missing: list[str] = []
+
+class AtsSectionCompat(BaseModel):
+    clean: bool = True
+    issues: list[str] = []
+    warning: str = ""
+
+class AtsBreakdownResult(BaseModel):
+    platform: str
+    overall_score: int = Field(..., ge=0, le=100)
+    parseability: AtsParseability
+    keyword_match: AtsKeywordMatch
+    section_compatibility: AtsSectionCompat
+    specific_feedback: str = ""
+    action_items: list[str] = []
+
+class AtsBreakdownRequest(BaseModel):
+    resume: str = Field(..., max_length=50000)
+    job_description: str = Field(..., max_length=50000)
+    platform: str = "greenhouse"
+
+class AtsBreakdownResponse(BaseModel):
+    result: AtsBreakdownResult

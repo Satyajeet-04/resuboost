@@ -75,6 +75,43 @@ const api = (() => {
         job_description: jdText
       });
     }
+
+    async coverLetter(resumeText, jdText) {
+      return this.request('/cover_letter', {
+        resume: resumeText,
+        job_description: jdText
+      });
+    }
+
+    async keywords(resumeText, jdText) {
+      return this.request('/keywords', {
+        resume: resumeText,
+        job_description: jdText
+      });
+    }
+
+    async score(resumeText, jdText) {
+      return this.request('/score', {
+        resume: resumeText,
+        job_description: jdText
+      });
+    }
+
+    async interviewQuestions(resumeText, jdText, gaps = []) {
+      return this.request('/interview_questions', {
+        resume: resumeText,
+        job_description: jdText,
+        gaps: gaps
+      });
+    }
+
+    async atsBreakdown(resumeText, jdText, platform = 'greenhouse') {
+      return this.request('/ats_breakdown', {
+        resume: resumeText,
+        job_description: jdText,
+        platform: platform
+      });
+    }
   }
 
   return { client: new BackendClient(), RateLimitError };

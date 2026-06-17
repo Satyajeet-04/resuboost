@@ -11,6 +11,11 @@ MODEL_ROUTES = {
     "rewrite": "llama-3.3-70b-versatile",     # STAR rewrite -> quality
     "full_rewrite": "llama-3.3-70b-versatile", # full resume rewrite -> best model
     "simulate": "llama-3.3-70b-versatile",    # Boolean query generation -> quality
+    "cover_letter": "llama-3.3-70b-versatile", # cover letter -> quality writing
+    "keywords": "llama-3.1-8b-instant",       # keyword extraction -> fast
+    "resume_scorer": "llama-3.3-70b-versatile", # scoring -> nuanced evaluation
+    "interview_questions": "llama-3.3-70b-versatile", # interview prep -> quality
+    "ats_breakdown": "llama-3.1-8b-instant",  # ATS analysis -> fast
 }
 
 class GroqClient:

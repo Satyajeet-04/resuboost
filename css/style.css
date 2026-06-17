@@ -330,3 +330,109 @@ footer {
   margin-bottom: 4px;
   font-size: 0.9rem;
 }
+
+/* --- Keyword Optimizer --- */
+#keyword-stats {
+  display: flex;
+  gap: 16px;
+  justify-content: space-around;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.keyword-stat-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 20px;
+  background: #f8fafc;
+  border-radius: 8px;
+  min-width: 100px;
+  font-size: 0.9rem;
+}
+.keyword-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border-left: 4px solid;
+}
+.kw-present { background: #f0fdf4; border-color: #22c55e; }
+.kw-missing { background: #fef2f2; border-color: #ef4444; }
+.keyword-name { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-weight: 500; }
+.kw-status { margin-left: auto; }
+.keyword-suggestion { font-size: 0.8rem; color: #666; margin-top: 4px; margin-left: 4px; }
+
+/* --- Resume Score --- */
+.score-category-row {
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+.score-category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+#score-strengths li, #score-weaknesses li { margin-bottom: 4px; font-size: 0.85rem; }
+#score-fixes li { margin-bottom: 6px; font-size: 0.9rem; }
+
+/* --- Interview Questions --- */
+.question-card {
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border: 1px solid #e5e7eb;
+}
+.question-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.question-number {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 0.85rem;
+}
+.question-text {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.question-why { font-size: 0.85rem; color: #666; margin-bottom: 4px; }
+.question-tip { font-size: 0.85rem; color: #0891b2; padding: 8px; background: #ecfeff; border-radius: 6px; margin-top: 8px; }
+
+/* --- ATS Breakdown --- */
+.ats-metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.ats-issues { padding-left: 16px; font-size: 0.85rem; color: #dc2626; }
+.ats-issues li { margin-bottom: 4px; }
+#ats-feedback { line-height: 1.5; }
+#ats-actions li { margin-bottom: 6px; font-size: 0.9rem; }
+
+/* --- Cover Letter --- */
+#cover-letter-text { font-family: Georgia, 'Times New Roman', serif; line-height: 1.8; }
+#cover-letter-points li { margin-bottom: 4px; font-size: 0.9rem; }
+
+/* --- Select Dropdown --- */
+select {
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: white;
+}
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}

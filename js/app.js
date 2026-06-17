@@ -103,6 +103,12 @@ window.app = (() => {
 
     document.getElementById('simulate-btn')?.addEventListener('click', simulate);
 
+    document.getElementById('cover-letter-btn')?.addEventListener('click', generateCoverLetter);
+    document.getElementById('keywords-btn')?.addEventListener('click', analyzeKeywords);
+    document.getElementById('score-btn')?.addEventListener('click', scoreResume);
+    document.getElementById('questions-btn')?.addEventListener('click', generateQuestions);
+    document.getElementById('ats-breakdown-btn')?.addEventListener('click', atsBreakdown);
+
     document.getElementById('back-to-analyze')?.addEventListener('click', () => {
       ui.show('step-analyze');
     });
@@ -162,6 +168,96 @@ window.app = (() => {
         '</body></html>');
       printWin.document.close();
     });
+
+    // Cover letter download
+    document.getElementById('download-cover-letter')?.addEventListener('click', () => {
+      const text = document.getElementById('cover-letter-text')?.textContent;
+      if (!text) return;
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'cover-letter.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // ATS platform selector
+    document.getElementById('ats-platform-select')?.addEventListener('change', (e) => {
+      state.selectedAtsPlatform = e.target.value;
+    });
+  }
+
+  async function generateCoverLetter() {
+    ui.hideError();
+    ui.setLoading('cover-letter-btn', true);
+    try {
+      const result = await api.client.coverLetter(state.resumeText, state.jdText);
+      ui.renderCoverLetter(result);
+      ui.show('step-cover-letter');
+    } catch (err) {
+      ui.showError(err instanceof api.RateLimitError ? '⚠️ Rate limit. Wait 30-60s.' : `Cover letter failed: ${err.message}`);
+    } finally {
+      ui.setLoading('cover-letter-btn', false);
+    }
+  }
+
+  async function analyzeKeywords() {
+    ui.hideError();
+    ui.setLoading('keywords-btn', true);
+    try {
+      const result = await api.client.keywords(state.resumeText, state.jdText);
+      ui.renderKeywords(result);
+      ui.show('step-keywords');
+    } catch (err) {
+      ui.showError(err instanceof api.RateLimitError ? '⚠️ Rate limit. Wait 30-60s.' : `Keyword analysis failed: ${err.message}`);
+    } finally {
+      ui.setLoading('keywords-btn', false);
+    }
+  }
+
+  async function scoreResume() {
+    ui.hideError();
+    ui.setLoading('score-btn', true);
+    try {
+      const result = await api.client.score(state.resumeText, state.jdText);
+      ui.renderScore(result);
+      ui.show('step-score');
+    } catch (err) {
+      ui.showError(err instanceof api.RateLimitError ? '⚠️ Rate limit. Wait 30-60s.' : `Scoring failed: ${err.message}`);
+    } finally {
+      ui.setLoading('score-btn', false);
+    }
+  }
+
+  async function generateQuestions() {
+    ui.hideError();
+    ui.setLoading('questions-btn', true);
+    try {
+      const gaps = state.gaps ? state.gaps.map(g => g.skill) : [];
+      const result = await api.client.interviewQuestions(state.resumeText, state.jdText, gaps);
+      ui.renderInterviewQuestions(result);
+      ui.show('step-questions');
+    } catch (err) {
+      ui.showError(err instanceof api.RateLimitError ? '⚠️ Rate limit. Wait 30-60s.' : `Questions failed: ${err.message}`);
+    } finally {
+      ui.setLoading('questions-btn', false);
+    }
+  }
+
+  async function atsBreakdown() {
+    ui.hideError();
+    const platform = state.selectedAtsPlatform || 'greenhouse';
+    ui.setLoading('ats-breakdown-btn', true);
+    try {
+      const result = await api.client.atsBreakdown(state.resumeText, state.jdText, platform);
+      ui.renderAtsBreakdown(result);
+      ui.show('step-ats');
+    } catch (err) {
+      ui.showError(err instanceof api.RateLimitError ? '⚠️ Rate limit. Wait 30-60s.' : `ATS breakdown failed: ${err.message}`);
+    } finally {
+      ui.setLoading('ats-breakdown-btn', false);
+    }
   }
 
   async function analyze() {
@@ -279,6 +375,7 @@ window.app = (() => {
     state.gaps = null;
     state.rewriteResult = null;
     state.simulation = null;
+    state.selectedAtsPlatform = 'greenhouse';
 
     document.getElementById('file-input').value = '';
     document.getElementById('file-info').textContent = 'No file selected';
@@ -289,6 +386,11 @@ window.app = (() => {
     document.getElementById('gap-list').innerHTML = '';
     document.getElementById('rewrite-result').classList.add('hidden');
     document.getElementById('simulation-table').querySelector('tbody').innerHTML = '';
+    document.getElementById('cover-letter-result')?.classList.add('hidden');
+    document.getElementById('keywords-result')?.classList.add('hidden');
+    document.getElementById('score-result')?.classList.add('hidden');
+    document.getElementById('questions-result')?.classList.add('hidden');
+    document.getElementById('ats-result')?.classList.add('hidden');
 
     ui.show('step-upload');
   }
@@ -307,5 +409,5 @@ window.app = (() => {
   }
 
   document.addEventListener('DOMContentLoaded', init);
-  return { init, analyze, rewrite, fullRewrite, simulate, reset };
+  return { init, analyze, rewrite, fullRewrite, simulate, generateCoverLetter, analyzeKeywords, scoreResume, generateQuestions, atsBreakdown, reset };
 })();

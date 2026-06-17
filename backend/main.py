@@ -6,6 +6,11 @@ from services.gap_analyzer import GapAnalyzer
 from services.rewriter import Rewriter
 from services.simulator import Simulator
 from services.full_rewriter import FullRewriter
+from services.cover_letter import CoverLetterGenerator
+from services.keywords import KeywordAnalyzer
+from services.resume_scorer import ResumeScorer
+from services.interview_questions import InterviewQuestionGenerator
+from services.ats_breakdown import ATSBreakdown
 from utils.sanitizer import sanitize
 from config import settings
 import json
@@ -140,5 +145,71 @@ async def simulate(req: SimulateRequest):
     try:
         result = Simulator().simulate(safe_resume, req.role)
         return result
+    except json.JSONDecodeError:
+        raise HTTPException(502, "AI returned invalid response format")
+
+@app.post("/cover_letter", response_model=CoverLetterResponse)
+async def cover_letter(req: CoverLetterRequest):
+    safe_resume = sanitize(req.resume) if settings.strip_pii else req.resume
+    safe_jd = sanitize(req.job_description) if settings.strip_pii else req.job_description
+    if len(safe_resume) > settings.max_input_length:
+        safe_resume = safe_resume[:settings.max_input_length]
+    if len(safe_jd) > settings.max_input_length:
+        safe_jd = safe_jd[:settings.max_input_length]
+    try:
+        return CoverLetterGenerator().generate(safe_resume, safe_jd)
+    except json.JSONDecodeError:
+        raise HTTPException(502, "AI returned invalid response format")
+
+@app.post("/keywords", response_model=KeywordResponse)
+async def keywords(req: KeywordRequest):
+    safe_resume = sanitize(req.resume) if settings.strip_pii else req.resume
+    safe_jd = sanitize(req.job_description) if settings.strip_pii else req.job_description
+    if len(safe_resume) > settings.max_input_length:
+        safe_resume = safe_resume[:settings.max_input_length]
+    if len(safe_jd) > settings.max_input_length:
+        safe_jd = safe_jd[:settings.max_input_length]
+    try:
+        return KeywordAnalyzer().analyze(safe_resume, safe_jd)
+    except json.JSONDecodeError:
+        raise HTTPException(502, "AI returned invalid response format")
+
+@app.post("/score", response_model=ScoreResponse)
+async def score(req: ScoreRequest):
+    safe_resume = sanitize(req.resume) if settings.strip_pii else req.resume
+    safe_jd = sanitize(req.job_description) if settings.strip_pii else req.job_description
+    if len(safe_resume) > settings.max_input_length:
+        safe_resume = safe_resume[:settings.max_input_length]
+    if len(safe_jd) > settings.max_input_length:
+        safe_jd = safe_jd[:settings.max_input_length]
+    try:
+        return ResumeScorer().score(safe_resume, safe_jd)
+    except json.JSONDecodeError:
+        raise HTTPException(502, "AI returned invalid response format")
+
+@app.post("/interview_questions", response_model=InterviewQuestionsResponse)
+async def interview_questions(req: InterviewQuestionsRequest):
+    safe_resume = sanitize(req.resume) if settings.strip_pii else req.resume
+    safe_jd = sanitize(req.job_description) if settings.strip_pii else req.job_description
+    if len(safe_resume) > settings.max_input_length:
+        safe_resume = safe_resume[:settings.max_input_length]
+    if len(safe_jd) > settings.max_input_length:
+        safe_jd = safe_jd[:settings.max_input_length]
+    try:
+        return InterviewQuestionGenerator().generate(safe_resume, safe_jd, req.gaps)
+    except json.JSONDecodeError:
+        raise HTTPException(502, "AI returned invalid response format")
+
+@app.post("/ats_breakdown", response_model=AtsBreakdownResponse)
+async def ats_breakdown(req: AtsBreakdownRequest):
+    safe_resume = sanitize(req.resume) if settings.strip_pii else req.resume
+    safe_jd = sanitize(req.job_description) if settings.strip_pii else req.job_description
+    if len(safe_resume) > settings.max_input_length:
+        safe_resume = safe_resume[:settings.max_input_length]
+    if len(safe_jd) > settings.max_input_length:
+        safe_jd = safe_jd[:settings.max_input_length]
+    try:
+        result = ATSBreakdown(platform=req.platform).analyze(safe_resume, safe_jd)
+        return {"result": result}
     except json.JSONDecodeError:
         raise HTTPException(502, "AI returned invalid response format")

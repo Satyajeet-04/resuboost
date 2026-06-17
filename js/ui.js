@@ -150,5 +150,209 @@ const ui = (() => {
     if (el) el.classList.add('hidden');
   }
 
-  return { show, setLoading, renderGaps, renderRewrite, renderFullRewrite, renderSimulation, showError, hideError, escapeHtml };
+  function renderCoverLetter(data) {
+    const el = $('#cover-letter-result');
+    if (!el) return;
+    el.classList.remove('hidden');
+
+    const textEl = $('#cover-letter-text');
+    if (textEl) textEl.textContent = data.cover_letter;
+
+    const subjectEl = $('#cover-letter-subject');
+    if (subjectEl && data.subject_line) subjectEl.textContent = `Subject: ${data.subject_line}`;
+
+    const pointsEl = $('#cover-letter-points');
+    if (pointsEl && data.key_points && data.key_points.length) {
+      pointsEl.innerHTML = data.key_points.map(p => `<li>${escapeHtml(p)}</li>`).join('');
+    }
+  }
+
+  function renderKeywords(data) {
+    const el = $('#keywords-result');
+    if (!el) return;
+    el.classList.remove('hidden');
+
+    const statsEl = $('#keyword-stats');
+    if (statsEl && data.stats) {
+      const s = data.stats;
+      const pct = s.coverage_pct || 0;
+      statsEl.innerHTML = `
+        <div class="keyword-stat-row">
+          <span>Coverage</span>
+          <span style="font-weight:700;font-size:1.2rem;color:${pct >= 70 ? '#22c55e' : pct >= 40 ? '#eab308' : '#ef4444'}">${pct}%</span>
+        </div>
+        <div class="keyword-stat-row">
+          <span>Matched</span><span>${s.matched || 0} / ${s.total_keywords || 0}</span>
+        </div>
+        <div class="keyword-stat-row">
+          <span>Missing</span><span style="color:#ef4444">${s.missing || 0}</span>
+        </div>
+      `;
+    }
+
+    const listEl = $('#keyword-list');
+    if (listEl && data.keywords) {
+      listEl.innerHTML = data.keywords.map(k => `
+        <div class="keyword-item ${k.in_resume ? 'kw-present' : 'kw-missing'}">
+          <div class="keyword-name">
+            <span class="badge ${k.importance === 'high' ? 'badge-red' : k.importance === 'medium' ? 'badge-yellow' : 'badge-green'}">${k.importance}</span>
+            ${escapeHtml(k.keyword)}
+            <span class="kw-status">${k.in_resume ? '✅' : '❌'}</span>
+          </div>
+          ${k.suggestion ? `<div class="keyword-suggestion">${escapeHtml(k.suggestion)}</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    if (data.recommendation) {
+      const recEl = $('#keyword-recommendation');
+      if (recEl) recEl.textContent = data.recommendation;
+    }
+  }
+
+  function renderScore(data) {
+    const el = $('#score-result');
+    if (!el) return;
+    el.classList.remove('hidden');
+
+    const overallEl = $('#score-overall');
+    if (overallEl) {
+      const s = data.overall_score || 0;
+      overallEl.textContent = `${s}/100`;
+      overallEl.style.color = s >= 70 ? '#22c55e' : s >= 40 ? '#eab308' : '#ef4444';
+    }
+
+    const scoresList = $('#scores-list');
+    if (scoresList && data.scores) {
+      scoresList.innerHTML = data.scores.map(sc => `
+        <div class="score-category-row">
+          <div class="score-category-header">
+            <span style="font-weight:600">${escapeHtml(sc.category)}</span>
+            <span style="font-weight:700;color:${sc.score >= 70 ? '#22c55e' : sc.score >= 40 ? '#eab308' : '#ef4444'}">${sc.score}/${sc.max_score || 100}</span>
+          </div>
+          <div class="progress-bar" style="height:8px;margin:4px 0">
+            <div class="progress-fill" style="width:${sc.score}%;height:8px;background:${sc.score >= 70 ? '#22c55e' : sc.score >= 40 ? '#eab308' : '#ef4444'}"></div>
+          </div>
+          <p style="font-size:0.85rem;color:#666;margin:2px 0">${escapeHtml(sc.reason)}</p>
+          ${sc.tip ? `<p style="font-size:0.85rem;color:#0891b2;margin:2px 0">💡 ${escapeHtml(sc.tip)}</p>` : ''}
+        </div>
+      `).join('');
+    }
+
+    const strengthsEl = $('#score-strengths');
+    if (strengthsEl && data.strengths) {
+      strengthsEl.innerHTML = data.strengths.map(s => `<li>${escapeHtml(s)}</li>`).join('');
+    }
+
+    const weaknessesEl = $('#score-weaknesses');
+    if (weaknessesEl && data.weaknesses) {
+      weaknessesEl.innerHTML = data.weaknesses.map(s => `<li>${escapeHtml(s)}</li>`).join('');
+    }
+
+    const fixesEl = $('#score-fixes');
+    if (fixesEl && data.priority_fixes) {
+      fixesEl.innerHTML = data.priority_fixes.map(s => `<li>${escapeHtml(s)}</li>`).join('');
+    }
+  }
+
+  function renderInterviewQuestions(data) {
+    const el = $('#questions-result');
+    if (!el) return;
+    el.classList.remove('hidden');
+
+    const listEl = $('#questions-list');
+    if (listEl && data.questions) {
+      listEl.innerHTML = data.questions.map((q, i) => {
+        const diffColor = q.difficulty === 'hard' ? '#ef4444' : q.difficulty === 'medium' ? '#eab308' : '#22c55e';
+        return `
+          <div class="question-card">
+            <div class="question-header">
+              <span class="question-number">Q${i + 1}</span>
+              <span class="badge badge-${q.category === 'technical' ? 'red' : q.category === 'behavioral' ? 'yellow' : 'green'}">${escapeHtml(q.category || 'general')}</span>
+              <span style="color:${diffColor};font-size:0.8rem;font-weight:600">${escapeHtml(q.difficulty || 'medium')}</span>
+            </div>
+            <p class="question-text">${escapeHtml(q.question)}</p>
+            <p class="question-why"><strong>Why this is asked:</strong> ${escapeHtml(q.why_asked || '')}</p>
+            ${q.preparation_tip ? `<p class="question-tip"><strong>💡 Tip:</strong> ${escapeHtml(q.preparation_tip)}</p>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  function renderAtsBreakdown(data) {
+    const el = $('#ats-result');
+    if (!el) return;
+    el.classList.remove('hidden');
+
+    const result = data.result || data;
+
+    const scoreEl = $('#ats-platform-score');
+    if (scoreEl) {
+      const s = result.overall_score || 0;
+      scoreEl.textContent = `${s}/100`;
+      scoreEl.style.color = s >= 70 ? '#22c55e' : s >= 40 ? '#eab308' : '#ef4444';
+    }
+
+    // Parseability
+    const parseEl = $('#ats-parseability');
+    if (parseEl && result.parseability) {
+      const p = result.parseability;
+      parseEl.innerHTML = `
+        <div class="ats-metric">
+          <span style="font-weight:600">Parseability</span>
+          <span style="color:${p.score >= 70 ? '#22c55e' : '#eab308'}">${p.score}/100</span>
+        </div>
+        ${p.issues && p.issues.length ? `<ul class="ats-issues">${p.issues.map(i => `<li>${escapeHtml(i)}</li>`).join('')}</ul>` : '<p style="font-size:0.85rem;color:#22c55e">No parseability issues</p>'}
+      `;
+    }
+
+    // Keyword match
+    const kwEl = $('#ats-keywords');
+    if (kwEl && result.keyword_match) {
+      const km = result.keyword_match;
+      kwEl.innerHTML = `
+        <div class="ats-metric">
+          <span style="font-weight:600">Keyword Match</span>
+          <span style="color:${km.score >= 70 ? '#22c55e' : '#eab308'}">${km.score}/100</span>
+        </div>
+        ${km.matched && km.matched.length ? `<p style="font-size:0.85rem;margin:4px 0"><strong>Found:</strong> ${km.matched.join(', ')}</p>` : ''}
+        ${km.missing && km.missing.length ? `<p style="font-size:0.85rem;margin:4px 0;color:#ef4444"><strong>Missing:</strong> ${km.missing.join(', ')}</p>` : ''}
+      `;
+    }
+
+    // Section compatibility
+    const secEl = $('#ats-sections');
+    if (secEl && result.section_compatibility) {
+      const sc = result.section_compatibility;
+      secEl.innerHTML = `
+        <div class="ats-metric">
+          <span style="font-weight:600">Sections</span>
+          <span style="color:${sc.clean ? '#22c55e' : '#ef4444'}">${sc.clean ? '✅ Compatible' : '⚠️ Issues'}</span>
+        </div>
+        ${sc.warning ? `<p style="font-size:0.85rem;color:#eab308">${escapeHtml(sc.warning)}</p>` : ''}
+        ${sc.issues && sc.issues.length ? `<ul class="ats-issues">${sc.issues.map(i => `<li>${escapeHtml(i)}</li>`).join('')}</ul>` : ''}
+      `;
+    }
+
+    // Specific feedback
+    const feedbackEl = $('#ats-feedback');
+    if (feedbackEl && result.specific_feedback) {
+      feedbackEl.textContent = result.specific_feedback;
+    }
+
+    // Action items
+    const actionEl = $('#ats-actions');
+    if (actionEl && result.action_items) {
+      actionEl.innerHTML = result.action_items.map(a => `<li>${escapeHtml(a)}</li>`).join('');
+    }
+
+    // Platform name
+    const nameEl = $('#ats-platform-name');
+    if (nameEl && result.platform) {
+      nameEl.textContent = `ATS: ${result.platform.charAt(0).toUpperCase() + result.platform.slice(1)}`;
+    }
+  }
+
+  return { show, setLoading, renderGaps, renderRewrite, renderFullRewrite, renderSimulation, renderCoverLetter, renderKeywords, renderScore, renderInterviewQuestions, renderAtsBreakdown, showError, hideError, escapeHtml };
 })();

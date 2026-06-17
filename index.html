@@ -64,9 +64,14 @@
           <div class="score-label">Overall Match Score</div>
         </div>
         <div id="gap-list"></div>
-        <div class="btn-group">
+        <div class="btn-group" style="flex-wrap:wrap;gap:8px">
           <button id="full-rewrite-btn" class="btn btn-primary">Generate Full Rewritten Resume</button>
           <button id="simulate-btn" class="btn btn-primary">Simulate Recruiter Search</button>
+          <button id="cover-letter-btn" class="btn btn-primary" style="background:#7c3aed;border-color:#7c3aed">Generate Cover Letter</button>
+          <button id="keywords-btn" class="btn btn-primary" style="background:#0891b2;border-color:#0891b2">Keyword Optimizer</button>
+          <button id="score-btn" class="btn btn-primary" style="background:#059669;border-color:#059669">Score Resume</button>
+          <button id="questions-btn" class="btn btn-primary" style="background:#d97706;border-color:#d97706">Interview Questions</button>
+          <button id="ats-breakdown-btn" class="btn btn-primary" style="background:#dc2626;border-color:#dc2626">ATS Platform Breakdown</button>
           <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
         </div>
       </div>
@@ -85,6 +90,109 @@
             <button id="copy-full-rewrite" class="btn btn-primary" onclick="(() => { navigator.clipboard.writeText(document.getElementById('full-rewrite-text').textContent).then(() => { const b=document.getElementById('copy-full-rewrite'); b.textContent='Copied!'; setTimeout(()=>b.textContent='Copy to Clipboard',2000); }); })()">Copy to Clipboard</button>
             <button id="download-txt" class="btn btn-primary" style="background:#0891b2;border-color:#0891b2">Download as Text</button>
             <button id="download-pdf" class="btn btn-primary" style="background:#7c3aed;border-color:#7c3aed">Save as PDF</button>
+            <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="step-cover-letter" class="step hidden">
+      <div class="card">
+        <h2>Cover Letter</h2>
+        <div id="cover-letter-result" class="hidden">
+          <p id="cover-letter-subject" style="font-weight:600;color:#7c3aed;margin-bottom:12px"></p>
+          <pre id="cover-letter-text" style="white-space:pre-wrap;background:#f8f9fa;padding:16px;border-radius:8px;font-size:0.9rem;line-height:1.6;max-height:500px;overflow-y:auto;font-family:Georgia,serif"></pre>
+          <div id="cover-letter-points-container" style="margin-top:12px" class="hidden">
+            <h4>Key Points</h4>
+            <ul id="cover-letter-points"></ul>
+          </div>
+          <div class="btn-group">
+            <button id="download-cover-letter" class="btn btn-primary" style="background:#7c3aed;border-color:#7c3aed">Download as Text</button>
+            <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="step-keywords" class="step hidden">
+      <div class="card">
+        <h2>Keyword Optimizer</h2>
+        <div id="keywords-result" class="hidden">
+          <div id="keyword-stats" style="display:flex;gap:16px;justify-content:space-around;margin-bottom:16px;flex-wrap:wrap"></div>
+          <div id="keyword-recommendation" style="background:#f0fdf4;padding:12px;border-radius:8px;margin-bottom:16px;font-size:0.9rem;color:#166534"></div>
+          <h4>Keywords</h4>
+          <div id="keyword-list"></div>
+          <div class="btn-group">
+            <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="step-score" class="step hidden">
+      <div class="card">
+        <h2>Resume Score</h2>
+        <div id="score-result" class="hidden">
+          <div id="score-overall" style="font-size:2.5rem;font-weight:700;text-align:center;margin:16px 0"></div>
+          <div id="scores-list"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px">
+            <div>
+              <h4>Strengths</h4>
+              <ul id="score-strengths" style="color:#166534"></ul>
+            </div>
+            <div>
+              <h4>Weaknesses</h4>
+              <ul id="score-weaknesses" style="color:#dc2626"></ul>
+            </div>
+          </div>
+          <h4 style="margin-top:16px">Priority Fixes</h4>
+          <ol id="score-fixes" style="background:#fefce8;padding:16px 32px;border-radius:8px"></ol>
+          <div class="btn-group">
+            <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="step-questions" class="step hidden">
+      <div class="card">
+        <h2>Interview Preparation Questions</h2>
+        <p>Practice questions based on your resume, the job description, and identified gaps.</p>
+        <div id="questions-result" class="hidden">
+          <div id="questions-list"></div>
+          <div class="btn-group">
+            <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="step-ats" class="step hidden">
+      <div class="card">
+        <h2>ATS Platform Breakdown</h2>
+        <p>See how your resume scores on different ATS platforms.</p>
+        <div style="margin-bottom:16px">
+          <label for="ats-platform-select" style="font-weight:600;font-size:0.9rem">Select ATS Platform:</label>
+          <select id="ats-platform-select" style="margin-left:8px;padding:6px 12px;border-radius:6px;border:1px solid #ccc">
+            <option value="greenhouse">Greenhouse</option>
+            <option value="workday">Workday</option>
+            <option value="lever">Lever</option>
+            <option value="icims">iCIMS</option>
+            <option value="taleo">Taleo</option>
+          </select>
+        </div>
+        <div id="ats-result" class="hidden">
+          <h3 id="ats-platform-name" style="color:#6366f1"></h3>
+          <div id="ats-platform-score" style="font-size:2rem;font-weight:700;text-align:center;margin:12px 0"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div id="ats-parseability" style="background:#f8f9fa;padding:12px;border-radius:8px"></div>
+            <div id="ats-keywords" style="background:#f8f9fa;padding:12px;border-radius:8px"></div>
+          </div>
+          <div id="ats-sections" style="background:#f8f9fa;padding:12px;border-radius:8px;margin-top:12px"></div>
+          <p id="ats-feedback" style="background:#eef2ff;padding:12px;border-radius:8px;margin-top:12px;font-size:0.9rem"></p>
+          <h4 style="margin-top:12px">Action Items</h4>
+          <ul id="ats-actions" style="background:#f0fdf4;padding:16px 32px;border-radius:8px"></ul>
+          <div class="btn-group">
             <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
           </div>
         </div>
