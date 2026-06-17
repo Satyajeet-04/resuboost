@@ -1,5 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from models.schemas import *
 from services.gap_analyzer import GapAnalyzer
 from services.rewriter import Rewriter
@@ -10,6 +11,15 @@ from config import settings
 import json
 
 app = FastAPI(title="ResuBoost API", version="1.0.0")
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    msg = str(exc)
+    status = 500
+    lower = msg.lower()
+    if "rate limit" in lower or "quota" in lower or "resource exhausted" in lower or "429" in msg:
+        status = 429
+    return JSONResponse(status_code=status, content={"detail": msg})
 
 app.add_middleware(
     CORSMiddleware,
@@ -43,8 +53,6 @@ async def analyze(req: AnalyzeRequest):
         return result
     except json.JSONDecodeError:
         raise HTTPException(502, "AI returned invalid response format")
-    except Exception as e:
-        raise HTTPException(500, f"Analysis failed: {str(e)}")
 
 @app.post("/rewrite", response_model=RewriteResponse)
 async def rewrite(req: RewriteRequest):
@@ -57,8 +65,6 @@ async def rewrite(req: RewriteRequest):
         return result
     except json.JSONDecodeError:
         raise HTTPException(502, "AI returned invalid response format")
-    except Exception as e:
-        raise HTTPException(500, f"Rewrite failed: {str(e)}")
 
 @app.post("/full_rewrite", response_model=FullRewriteResponse)
 async def full_rewrite(req: FullRewriteRequest):
@@ -71,8 +77,6 @@ async def full_rewrite(req: FullRewriteRequest):
         return result
     except json.JSONDecodeError:
         raise HTTPException(502, "AI returned invalid response format")
-    except Exception as e:
-        raise HTTPException(500, f"Full rewrite failed: {str(e)}")
 
 @app.post("/simulate", response_model=SimulateResponse)
 async def simulate(req: SimulateRequest):
@@ -85,5 +89,3 @@ async def simulate(req: SimulateRequest):
         return result
     except json.JSONDecodeError:
         raise HTTPException(502, "AI returned invalid response format")
-    except Exception as e:
-        raise HTTPException(500, f"Simulation failed: {str(e)}")

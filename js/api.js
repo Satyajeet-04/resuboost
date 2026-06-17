@@ -1,3 +1,10 @@
+class RateLimitError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'RateLimitError';
+  }
+}
+
 const api = (() => {
   class BackendClient {
     constructor() {
@@ -17,8 +24,20 @@ const api = (() => {
         });
         clearTimeout(timeoutId);
         if (!res.ok) {
-          const errText = await res.text();
-          throw new Error(errText || `HTTP ${res.status}`);
+          let detail = `HTTP ${res.status}`;
+          try {
+            const errJson = await res.json();
+            if (errJson.detail) detail = errJson.detail;
+          } catch {
+            const errText = await res.text().catch(() => '');
+            if (errText) detail = errText;
+          }
+          // Detect rate limit / quota errors
+          const lower = detail.toLowerCase();
+          if (res.status === 429 || lower.includes('rate limit') || lower.includes('quota') || lower.includes('resource exhausted')) {
+            throw new RateLimitError(detail);
+          }
+          throw new Error(detail);
         }
         return res.json();
       } catch (err) {
@@ -58,5 +77,5 @@ const api = (() => {
     }
   }
 
-  return { client: new BackendClient() };
+  return { client: new BackendClient(), RateLimitError };
 })();
