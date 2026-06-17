@@ -17,7 +17,7 @@ class AnalyzeResponse(BaseModel):
 class RewriteRequest(BaseModel):
     resume: str = Field(..., max_length=50000)
     skill: str = Field(..., max_length=500)
-    context: str = Field("", max_length=2000)
+    context: str = Field("", max_length=50000)
 
 class RewriteResponse(BaseModel):
     original: list[str]

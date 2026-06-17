@@ -33,7 +33,8 @@ const api = (() => {
             if (errText) detail = errText;
           }
           // Detect rate limit / quota errors
-          const lower = detail.toLowerCase();
+          const detailStr = typeof detail === 'string' ? detail : JSON.stringify(detail);
+          const lower = detailStr.toLowerCase();
           if (res.status === 429 || lower.includes('rate limit') || lower.includes('quota') || lower.includes('resource exhausted')) {
             throw new RateLimitError(detail);
           }
