@@ -68,7 +68,7 @@ class KeywordStats(BaseModel):
     total_keywords: int
     matched: int
     missing: int
-    coverage_pct: int
+    coverage_pct: float
 
 class KeywordRequest(BaseModel):
     resume: str = Field(..., max_length=50000)
