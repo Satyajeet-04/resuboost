@@ -11,7 +11,7 @@ class GeminiClient:
     def __init__(self):
         self.api_key = settings.gemini_api_key
         self.model = settings.gemini_model
-        self.timeout = 30  # seconds per request
+        self.timeout = 45  # seconds per request
 
     def _is_rate_limit(self, e: Exception) -> bool:
         msg = str(e).lower()
@@ -24,7 +24,7 @@ class GeminiClient:
             return int(float(match.group(1))) + 2
         return 0
 
-    def generate(self, prompt: str, system_instruction: str = None, max_retries=3) -> str:
+    def generate(self, prompt: str, system_instruction: str = None, max_retries=2) -> str:
         url = f"{GEMINI_API_URL}/{self.model}:generateContent?key={self.api_key}"
 
         body = {
