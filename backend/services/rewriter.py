@@ -32,4 +32,8 @@ class Rewriter:
         prompt = build_rewrite_prompt(resume, skill, context)
         raw = self.client.generate(prompt)
         result = json.loads(raw)
+        if not isinstance(result, dict):
+            raise ValueError(f"Expected dict, got {type(result).__name__}")
+        if "original" not in result or "rewritten" not in result:
+            raise ValueError("Gemini response missing 'original' or 'rewritten' fields")
         return result

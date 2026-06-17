@@ -37,4 +37,8 @@ class Simulator:
         prompt = build_simulate_prompt(resume, role)
         raw = self.client.generate(prompt)
         result = json.loads(raw)
+        if not isinstance(result, dict):
+            raise ValueError(f"Expected dict, got {type(result).__name__}")
+        if "queries" not in result or "match_rate" not in result:
+            raise ValueError("Gemini response missing 'queries' or 'match_rate' fields")
         return result

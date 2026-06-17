@@ -33,4 +33,15 @@ class FullRewriter:
         prompt = build_full_rewrite_prompt(resume, gaps, jd)
         raw = self.client.generate(prompt)
         result = json.loads(raw)
+        # Validate expected keys even if Gemini returns unexpected JSON
+        if not isinstance(result, dict):
+            raise ValueError(f"Expected dict, got {type(result).__name__}")
+        if "full_resume" not in result or not result.get("full_resume"):
+            # Fallback: use the raw text as resume if available
+            fallback_resume = raw.strip().strip('"')
+            if len(fallback_resume) > 200:
+                result["full_resume"] = fallback_resume
+                result["changes_summary"] = result.get("changes_summary", "Full resume rewritten to address missing skills.")
+            else:
+                raise ValueError("Gemini response missing 'full_resume' field")
         return result

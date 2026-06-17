@@ -81,8 +81,10 @@
           <ul id="full-rewrite-changes" style="margin-bottom:16px"></ul>
           <h4>Complete Resume</h4>
           <pre id="full-rewrite-text" style="white-space:pre-wrap;background:#f8f9fa;padding:16px;border-radius:8px;font-size:0.9rem;line-height:1.6;max-height:500px;overflow-y:auto"></pre>
-          <div class="btn-group">
+          <div class="btn-group" style="flex-wrap:wrap;gap:8px">
             <button id="copy-full-rewrite" class="btn btn-primary" onclick="(() => { navigator.clipboard.writeText(document.getElementById('full-rewrite-text').textContent).then(() => { const b=document.getElementById('copy-full-rewrite'); b.textContent='Copied!'; setTimeout(()=>b.textContent='Copy to Clipboard',2000); }); })()">Copy to Clipboard</button>
+            <button id="download-txt" class="btn btn-primary" style="background:#0891b2;border-color:#0891b2">Download as Text</button>
+            <button id="download-pdf" class="btn btn-primary" style="background:#7c3aed;border-color:#7c3aed">Save as PDF</button>
             <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
           </div>
         </div>

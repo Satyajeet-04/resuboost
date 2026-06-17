@@ -45,4 +45,8 @@ class GapAnalyzer:
         prompt = build_analyze_prompt(resume, jd)
         raw = self.client.generate(prompt, system_instruction=SYSTEM_INSTRUCTION)
         result = json.loads(raw)
+        if not isinstance(result, dict):
+            raise ValueError(f"Expected dict, got {type(result).__name__}")
+        if "gaps" not in result or "match_score" not in result:
+            raise ValueError("Gemini response missing 'gaps' or 'match_score' fields")
         return result
