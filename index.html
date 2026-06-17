@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ResuBoost — AI Resume Optimizer</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>ResuBoost</h1>
+      <p>AI-powered resume optimizer — from ATS score to recruiter visibility</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="error-message" class="hidden"></div>
+
+    <div id="step-upload" class="step">
+      <div class="card">
+        <h2>Upload Your Resume</h2>
+        <p>Upload a PDF version of your resume. Your data stays private — nothing is stored.</p>
+        <div id="drop-zone" class="drop-zone">
+          <div class="drop-zone-icon">📄</div>
+          <p>Drag & drop your resume PDF here</p>
+          <p style="font-size:0.8rem">or</p>
+          <button id="browse-btn" class="btn btn-primary">Browse Files</button>
+          <input type="file" id="file-input" accept=".pdf" hidden>
+        </div>
+        <div id="file-info">No file selected</div>
+        <div id="extracted-text-container" class="hidden" style="margin-top:16px">
+          <label for="extracted-text" style="font-weight:600;font-size:0.9rem">Extracted Text (verify & edit if needed)</label>
+          <textarea id="extracted-text" rows="8" style="margin-top:8px" placeholder="Extracted resume text will appear here..."></textarea>
+        </div>
+        <div class="btn-group">
+          <button id="to-jd-btn" class="btn btn-primary">Continue →</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="step-jd" class="step hidden">
+      <div class="card">
+        <h2>Paste Job Description</h2>
+        <p>Paste the full job description you want to optimize for.</p>
+        <textarea id="jd-input" rows="8" placeholder="Paste the job description here..."></textarea>
+        <div style="margin-top:12px">
+          <label for="role-input" style="font-weight:600;font-size:0.9rem">Target Role (for recruiter simulation)</label>
+          <input type="text" id="role-input" placeholder="e.g., Senior Frontend Engineer" style="margin-top:4px">
+        </div>
+        <div class="btn-group">
+          <button id="back-to-upload" class="btn btn-secondary" onclick="app.reset()">← Back</button>
+          <button id="analyze-btn" class="btn btn-primary">Analyze Resume</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="step-analyze" class="step hidden">
+      <div class="card">
+        <h2>Gap Analysis</h2>
+        <div id="match-score-display">
+          <div id="match-score">--</div>
+          <div class="score-label">Overall Match Score</div>
+        </div>
+        <div id="gap-list"></div>
+        <div class="btn-group">
+          <button id="simulate-btn" class="btn btn-primary">Simulate Recruiter Search</button>
+          <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="step-rewrite" class="step hidden">
+      <div class="card">
+        <h2>Rewritten Bullets</h2>
+        <div class="compare-grid">
+          <div class="compare-col">
+            <h4>Original</h4>
+            <ul id="original-bullets"></ul>
+          </div>
+          <div class="compare-col">
+            <h4>Rewritten</h4>
+            <ul id="rewritten-bullets"></ul>
+          </div>
+        </div>
+        <p id="rewrite-explanation"></p>
+        <div class="btn-group">
+          <button id="copy-rewrite" class="btn btn-primary">Copy to Clipboard</button>
+          <button id="back-to-analyze" class="btn btn-secondary">← Back to Gaps</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="step-simulate" class="step hidden">
+      <div class="card">
+        <h2>Recruiter Search Simulator</h2>
+        <p>How your resume would appear in real recruiter Boolean searches.</p>
+        <div id="match-score-display">
+          <div id="match-rate">--</div>
+          <div class="score-label">Recruiter Search Match Rate</div>
+          <div class="progress-bar">
+            <div id="match-bar" class="progress-fill" style="width:0%"></div>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="simulation-table">
+            <thead>
+              <tr>
+                <th style="width:35%">Recruiter Search Query</th>
+                <th style="width:10%">Match?</th>
+                <th>Why</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>ResuBoost — 100% free. No account needed. Your data stays in your browser.</p>
+    </footer>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/parser.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
