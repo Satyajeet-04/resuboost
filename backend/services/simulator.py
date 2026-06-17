@@ -4,9 +4,9 @@ import json
 def build_simulate_prompt(resume: str, role: str) -> str:
     return f"""You are a recruiter at a company hiring for: {role}
 
-Generate 15 realistic Boolean search strings that recruiters would use in their ATS or LinkedIn Recruiter to find candidates for this role.
+Generate 8 realistic Boolean search strings that recruiters would use in their ATS or LinkedIn Recruiter to find candidates for this role.
 
-For each query, evaluate whether this specific RESUME would appear in the search results.
+For each query, evaluate whether this specific RESUME would appear.
 
 RESUME:
 {resume}
@@ -15,18 +15,17 @@ Return JSON:
 {{
   "queries": [
     {{
-      "query": "boolean search string (e.g., \\"(react OR angular) AND (typescript OR javascript) AND aws\\")",
+      "query": "boolean search string",
       "match": true or false,
-      "why": "Resume matches because... | Resume does NOT match because..."
+      "why": "Matches because... | Does NOT match because..."
     }}
   ],
-  "match_rate": <integer 0-100 = percentage of queries that match>
+  "match_rate": <integer 0-100>
 }}
 
 Rules:
-- Queries should be realistic recruiter searches (mix of AND/OR, skills, years, roles).
-- Queries should vary in specificity (some broad, some narrow).
-- 7-8 should match, 7-8 should NOT match (to show gaps).
+- Vary specificity (some broad, some narrow).
+- 4 should match, 4 should NOT match.
 - For non-matches, explain exactly what's missing."""
 
 class Simulator:
