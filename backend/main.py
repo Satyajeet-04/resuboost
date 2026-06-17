@@ -9,6 +9,7 @@ from services.full_rewriter import FullRewriter
 from utils.sanitizer import sanitize
 from config import settings
 import json
+import traceback
 
 app = FastAPI(title="ResuBoost API", version="1.0.0")
 
@@ -36,6 +37,50 @@ app.add_middleware(
 
 from services.groq_client import MODEL_ROUTES
 import os
+import requests
+
+@app.get("/debug/groq")
+def debug_groq():
+    results = {}
+    # Test 1: Basic network to groq.com
+    try:
+        resp = requests.get("https://api.groq.com/openai/v1/models", timeout=10)
+        results["models_connect"] = {"status": resp.status_code, "body": resp.text[:200]}
+    except Exception as e:
+        results["models_connect"] = {"error": str(e), "trace": traceback.format_exc()[-500:]}
+    
+    # Test 2: Try a simple chat completion
+    api_key = os.getenv("GROQ_API_KEY", "")
+    if api_key:
+        try:
+            resp = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {api_key}",
+                    "User-Agent": "ResuBoost/1.0",
+                },
+                json={
+                    "model": "llama-3.1-8b-instant",
+                    "messages": [{"role": "user", "content": "say hi json {\"word\": \"test\"}"}],
+                    "temperature": 0.2,
+                    "max_tokens": 50,
+                    "response_format": {"type": "json_object"},
+                },
+                timeout=15,
+            )
+            results["chat_test"] = {
+                "status": resp.status_code,
+                "body": resp.text[:300],
+                "headers": dict(resp.headers),
+            }
+        except Exception as e:
+            results["chat_test"] = {"error": str(e)[:300], "trace": traceback.format_exc()[-300:]}
+    
+    results["groq_key_set"] = bool(api_key)
+    results["groq_key_len"] = len(api_key)
+    results["groq_key_prefix"] = api_key[:7] if api_key else ""
+    return results
 
 @app.get("/health")
 def health():
