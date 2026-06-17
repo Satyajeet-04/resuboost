@@ -24,7 +24,7 @@ class GeminiClient:
             return int(float(match.group(1))) + 2
         return 0
 
-    def generate(self, prompt: str, system_instruction: str = None, max_retries=2) -> str:
+    def generate(self, prompt: str, system_instruction: str = None, max_retries=3) -> str:
         url = f"{GEMINI_API_URL}/{self.model}:generateContent?key={self.api_key}"
 
         body = {
@@ -38,20 +38,20 @@ class GeminiClient:
         if system_instruction:
             body["system_instruction"] = {"parts": [{"text": system_instruction}]}
 
+        data = json.dumps(body).encode()
+
         for attempt in range(max_retries):
             try:
-                data = json.dumps(body).encode()
                 req = urllib.request.Request(
                     url, data=data,
                     headers={"Content-Type": "application/json"}
                 )
                 with urllib.request.urlopen(req, timeout=self.timeout) as resp:
                     result = json.loads(resp.read().decode())
-                
+
                 candidates = result.get("candidates", [])
                 if not candidates:
                     raise ValueError("No candidates in Gemini response")
-                
                 parts = candidates[0].get("content", {}).get("parts", [])
                 text = parts[0].get("text", "").strip() if parts else ""
                 if not text:
@@ -59,27 +59,20 @@ class GeminiClient:
                 return text
 
             except urllib.error.HTTPError as e:
-                error_body = e.read().decode() if e.fp else ""
-                if attempt == max_retries - 1:
-                    if e.code == 429:
-                        raise Exception(f"Rate limit exceeded: {error_body}")
-                    raise Exception(f"Gemini API error {e.code}: {error_body}")
-                
-                if e.code == 429:
+                # Only retry on 429 (rate limit) - it returns fast
+                if e.code == 429 and attempt < max_retries - 1:
+                    error_body = e.read().decode() if e.fp else ""
                     retry_sec = self._extract_retry_seconds(Exception(error_body))
-                    if retry_sec > 0:
-                        time.sleep(min(retry_sec, 60))
-                    else:
-                        time.sleep(10 * (attempt + 1))
-                else:
-                    time.sleep(2 ** attempt)
+                    time.sleep(min(max(retry_sec, 5) if retry_sec else 10, 60))
+                    continue
+                # Non-429 errors: fail immediately, no retry
+                error_body = e.read().decode() if e.fp else ""
+                raise Exception(f"Gemini API error {e.code}: {error_body}")
 
             except Exception as e:
-                if attempt == max_retries - 1:
-                    raise
-                
-                if self._is_rate_limit(e):
+                # Retry only rate-limit-like errors; timeout/slow: no retry
+                if attempt < max_retries - 1 and self._is_rate_limit(e):
                     retry_sec = self._extract_retry_seconds(e)
                     time.sleep(min(retry_sec or 10, 60))
-                else:
-                    time.sleep(2 ** attempt)
+                    continue
+                raise  # timeout or other error — fail immediately
