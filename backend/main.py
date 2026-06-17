@@ -35,10 +35,16 @@ app.add_middleware(
 )
 
 from services.groq_client import MODEL_ROUTES
+import os
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "provider": "groq", "models": MODEL_ROUTES}
+    return {
+        "status": "ok",
+        "provider": "groq",
+        "models": MODEL_ROUTES,
+        "groq_key_set": bool(os.getenv("GROQ_API_KEY", "")),
+    }
 
 @app.post("/analyze", response_model=AnalyzeResponse)
 async def analyze(req: AnalyzeRequest):
