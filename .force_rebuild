@@ -1,1 +1,2 @@
-# HF Space sync trigger
+# HF Space sync trigger - updated $(date -u +%Y-%m-%dT%H:%M:%SZ)
+# Force rebuild with all new endpoints: templates, recommendations, auto-routing
