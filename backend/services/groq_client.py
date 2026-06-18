@@ -12,9 +12,9 @@ OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 # Auto-routing: Groq (primary) -> OpenRouter (fallback on rate-limit / down)
 # Each task has a primary model (Groq) and a fallback model (OpenRouter).
 # ---------------------------------------------------------------------------
-# OpenRouter models with correct dash format (claude-3-5-haiku, not claude-3.5-haiku)
-OPENROUTER_FAST = "anthropic/claude-3-5-haiku"
-OPENROUTER_QUALITY = "anthropic/claude-3-5-sonnet"
+# OpenRouter models — verified working (2026)
+OPENROUTER_FAST = "anthropic/claude-3.5-haiku"
+OPENROUTER_QUALITY = "anthropic/claude-sonnet-4.5"
 
 MODEL_ROUTES = {
     "analyze":              {"groq": "llama-3.1-8b-instant",     "openrouter": OPENROUTER_FAST},
@@ -26,7 +26,7 @@ MODEL_ROUTES = {
     "resume_scorer":        {"groq": "llama-3.1-8b-instant",    "openrouter": OPENROUTER_FAST},
     "interview_questions":  {"groq": "llama-3.3-70b-versatile",  "openrouter": OPENROUTER_QUALITY},
     "ats_breakdown":        {"groq": "llama-3.1-8b-instant",     "openrouter": OPENROUTER_FAST},
-    "shortlist":            {"groq": "llama-3.3-70b-versatile",  "openrouter": OPENROUTER_QUALITY},
+    "shortlist":            {"groq": "llama-3.1-8b-instant",     "openrouter": OPENROUTER_FAST},
     "templates":            {"groq": "llama-3.1-8b-instant",     "openrouter": OPENROUTER_FAST},
     "recommend":            {"groq": "llama-3.1-8b-instant",    "openrouter": OPENROUTER_FAST},
 }
