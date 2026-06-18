@@ -102,14 +102,19 @@ Example: ["Python", "AWS", "Microservices", "System Design", "CI/CD", "Docker", 
     # Score resume
     # ------------------------------------------------------------------
     def _score_resume(self, resume: str, jd: str) -> dict:
+        # First compute a fast keyword-based score as baseline
+        kw_score, kw_weaknesses = self._keyword_based_score(resume, jd)
+        
         groq = GroqClient(task_type="resume_scorer")
-        prompt = f"""Score this resume against the job description (0-100). Be strict.
+        prompt = f"""Score this resume against the job description (0-100).
 
 JD:
 {jd[:3000]}
 
 Resume:
 {resume[:3000]}
+
+Base keyword coverage suggests: {kw_score}/100
 
 Return JSON:
 {{{{
@@ -121,8 +126,58 @@ Return JSON:
         text = groq.generate(prompt, system)
         result = _robust_json_parse(text)
         if isinstance(result, dict):
+            # Blend AI score with keyword score to be fair
+            ai_score = result.get("overall_score", 0)
+            blended = max(kw_score, ai_score)  # take the higher of the two
+            result["overall_score"] = blended
+            # Add missing keywords as weaknesses if not already there
+            existing = [w.lower() for w in result.get("weaknesses", [])]
+            for kw in kw_weaknesses:
+                if kw.lower() not in existing:
+                    result["weaknesses"] = result.get("weaknesses", []) + [f"Missing keyword: {kw}"]
             return result
-        return {"overall_score": 0, "strengths": [], "weaknesses": []}
+        return {"overall_score": kw_score, "strengths": [], "weaknesses": kw_weaknesses[:5]}
+
+    def _keyword_based_score(self, resume: str, jd: str) -> tuple:
+        """Fast keyword-based scoring as fallback/blend baseline."""
+        resume_lower = resume.lower()
+        jd_lower = jd.lower()
+        
+        # Extract meaningful words from JD
+        tech_terms = [
+            'python', 'java', 'javascript', 'typescript', 'react', 'angular', 'vue', 'node',
+            'aws', 'azure', 'gcp', 'docker', 'kubernetes', 'terraform', 'jenkins',
+            'sql', 'mysql', 'postgresql', 'mongodb', 'redis',
+            'rest', 'graphql', 'api', 'microservices',
+            'ci/cd', 'agile', 'scrum', 'devops',
+            'machine learning', 'deep learning', 'nlp', 'pytorch', 'tensorflow',
+            'kafka', 'rabbitmq', 'spark', 'airflow',
+            'system design', 'distributed systems', 'scalability',
+            'c++', 'golang', 'rust', 'swift', 'kotlin',
+            'tableau', 'power bi', 'looker', 'snowflake',
+            'excel', 'jira', 'confluence',
+            'leadership', 'communication', 'team management', 'cross-functional',
+            'agile', 'scrum', 'kanban', 'product management',
+            'data structures', 'algorithms', 'optimization',
+        ]
+        
+        found_in_jd = [t for t in tech_terms if t in jd_lower]
+        if not found_in_jd:
+            return 60, ["general keyword alignment"]
+        
+        matched = [t for t in found_in_jd if t in resume_lower]
+        missing = [t for t in found_in_jd if t not in resume_lower]
+        
+        score = int((len(matched) / max(len(found_in_jd), 1)) * 100)
+        # Bonus for having professional summary, skills section, quantified metrics
+        if re.search(r'(?i)(professional summary|summary|profile)', resume):
+            score = min(100, score + 5)
+        if re.search(r'(?i)skills', resume):
+            score = min(100, score + 5)
+        if re.search(r'\d+%|\d+x|\$\d+', resume):
+            score = min(100, score + 5)
+        
+        return score, missing
 
     # ------------------------------------------------------------------
     # Aggressive rewrite with keyword injection
@@ -195,21 +250,43 @@ Return JSON:
     # Fallback keyword injector
     # ------------------------------------------------------------------
     def _inject_keyword(self, resume: str, keyword: str) -> str:
-        """Inject a missing keyword into the skills section or summary."""
+        """Inject a missing keyword into skills + experience bullets."""
         if keyword.lower() in resume.lower():
             return resume
-        # Try to add to Skills section
+        
+        # 1. Add to Skills section
         skills_match = re.search(r'(?i)(SKILLS|TECHNICAL SKILLS|TECHNOLOGIES|EXPERTISE)\s*\n', resume)
         if skills_match:
             pos = skills_match.end()
-            # Find end of skills section (next section header or end)
             next_section = re.search(r'\n(?=[A-Z][A-Za-z\s]+:\s*\n|\n[A-Z][A-Za-z\s]+\n[-=]+\n)', resume[pos:])
             end_pos = pos + (next_section.start() if next_section else len(resume[pos:]))
-            # Add keyword at end of skills
             resume = resume[:end_pos].rstrip() + f", {keyword}\n" + resume[end_pos:]
         else:
-            # No skills section found, add one
             resume += f"\n\nSKILLS\n{keyword}\n"
+        
+        # 2. Also inject into at least one experience bullet
+        bullet_pattern = re.compile(r'^[-*•]\s+', re.MULTILINE)
+        bullets = list(bullet_pattern.finditer(resume))
+        if bullets:
+            # Pick a random bullet to enhance
+            import random
+            bullet = random.choice(bullets)
+            old_bullet_text = bullet.group()
+            # Find the end of this bullet (next bullet or blank line or end)
+            after_start = bullet.end()
+            next_bullet = bullet_pattern.search(resume[after_start:])
+            if next_bullet:
+                bullet_end = after_start + next_bullet.start()
+            else:
+                # End of line or section
+                line_end = resume.find('\n', after_start)
+                bullet_end = line_end if line_end > 0 else len(resume)
+            
+            old_line = resume[after_start:bullet_end].strip()
+            if keyword.lower() not in old_line.lower():
+                new_line = old_line.rstrip('.')
+                resume = resume[:bullet_end] + f", leveraging {keyword}" + resume[bullet_end:]
+        
         return resume
 
     # ------------------------------------------------------------------

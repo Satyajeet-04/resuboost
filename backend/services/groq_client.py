@@ -179,26 +179,31 @@ class GroqClient:
                     text = _strip_markdown_fences(text)
                     return text
 
-                # Rate-limit / overload -> retry
                 error_body = resp.text
                 error_code = resp.status_code
-                if error_code in (429, 500, 502, 503) and attempt < max_retries - 1:
-                    wait = self._extract_retry_seconds(error_body)
-                    time.sleep(min(max(wait, 3), 30))
-                    continue
 
-                # Auth / bad-request -> fail fast (no fallback retry)
+                # Transient errors -> short retry, then fallback
+                if error_code in (429, 500, 502, 503):
+                    if attempt < max_retries - 1:
+                        wait = self._extract_retry_seconds(error_body)
+                        # If retry-after is too long (>= 15s), skip retry -> fallback now
+                        if wait >= 15:
+                            return None
+                        time.sleep(min(wait, 8))
+                        continue
+                    return None  # fallback to next provider
+
+                # Auth / bad-request -> fail fast
                 if error_code in (401, 403):
                     raise Exception(f"[{provider}] Auth error {error_code}: check API key")
                 if error_code == 400:
-                    # Possibly a model that doesn't support JSON mode; retry without
                     body.pop("response_format", None)
                     if attempt < max_retries - 1:
                         time.sleep(1)
                         continue
-                    raise Exception(f"[{provider}] Bad request {error_code}: {error_body[:300]}")
+                    return None  # fallback after stripping format
 
-                raise Exception(f"[{provider}] API error {error_code}: {error_body[:300]}")
+                return None  # any other error -> fallback
 
             except requests.exceptions.Timeout:
                 if attempt < max_retries - 1:
