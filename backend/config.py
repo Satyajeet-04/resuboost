@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     max_tokens_score: int = 1024
     max_tokens_interview: int = 1536
     max_tokens_ats: int = 512
-    max_tokens_shortlist: int = 2048
+    max_tokens_shortlist: int = 3072
     max_tokens_templates: int = 1024
     max_tokens_recommend: int = 1024
     
