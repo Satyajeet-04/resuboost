@@ -3,326 +3,403 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ResuBoost — AI Resume Optimizer</title>
+  <title>ResuBoost — AI-Powered Resume Optimization Platform</title>
+  <meta name="description" content="Optimize your resume with AI. Get past ATS filters, land more interviews. Free resume analysis, rewriting, templates, and smart recommendations.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <header>
+
+  <!-- NAV -->
+  <nav>
     <div class="container">
-      <h1>ResuBoost</h1>
-      <p>AI-powered resume optimizer — from ATS score to recruiter visibility</p>
-    </div>
-  </header>
-
-  <main class="container">
-    <div id="error-message" class="hidden"></div>
-
-    <div id="step-upload" class="step">
-      <div class="card">
-        <h2>Upload Your Resume</h2>
-        <p>Upload a PDF version of your resume. Your data stays private — nothing is stored.</p>
-        <div id="drop-zone" class="drop-zone">
-          <div class="drop-zone-icon">📄</div>
-          <p>Drag & drop your resume PDF here</p>
-          <p style="font-size:0.8rem">or</p>
-          <button id="browse-btn" class="btn btn-primary">Browse Files</button>
-          <input type="file" id="file-input" accept=".pdf" hidden>
-        </div>
-        <div id="file-info">No file selected</div>
-        <div id="extracted-text-container" class="hidden" style="margin-top:16px">
-          <label for="extracted-text" style="font-weight:600;font-size:0.9rem">Extracted Text (verify & edit if needed)</label>
-          <textarea id="extracted-text" rows="8" style="margin-top:8px" placeholder="Extracted resume text will appear here..."></textarea>
-        </div>
-        <div class="btn-group">
-          <button id="to-jd-btn" class="btn btn-primary">Continue →</button>
-        </div>
+      <a class="logo" href="#" onclick="app.nav('hero')">ResuBoost <span>AI</span></a>
+      <div class="nav-links">
+        <a href="#" data-section="hero" class="active">Home</a>
+        <a href="#" data-section="templates-page">Templates</a>
+        <a href="#" data-section="step-upload">Dashboard</a>
       </div>
     </div>
+  </nav>
 
-    <div id="step-jd" class="step hidden">
-      <div class="card">
-        <h2>Paste Job Description</h2>
-        <p>Paste the full job description you want to optimize for.</p>
-        <textarea id="jd-input" rows="8" placeholder="Paste the job description here..."></textarea>
-        <div style="margin-top:12px">
-          <label for="role-input" style="font-weight:600;font-size:0.9rem">Target Role (for recruiter simulation)</label>
-          <input type="text" id="role-input" placeholder="e.g., Senior Frontend Engineer" style="margin-top:4px">
+  <!-- ===== PAGE SECTIONS ===== -->
+  <div id="hero" class="page-section">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container">
+        <h1>Land More Interviews with <span class="highlight">AI-Powered</span> Resume Optimization</h1>
+        <p>ResuBoost analyzes your resume against any job description, identifies gaps, rewrites content, shortlists with 85%+ match scores, and generates interview-winning materials — all in seconds.</p>
+        <div class="cta-group">
+          <button class="btn-hero btn-hero-primary" id="hero-cta">🚀 Start Optimizing Free</button>
+          <a class="btn-hero btn-hero-secondary" href="#" onclick="app.nav('templates-page')">📋 Browse Templates</a>
         </div>
-        <div style="margin-top:16px;padding:16px;background:#fefce8;border-radius:8px;border:2px solid #eab308">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600">
-            <input type="checkbox" id="shortlist-mode-toggle">
-            🎯 Shortlist Mode — Guaranteed Round 1 Pass
-          </label>
-          <p style="font-size:0.8rem;color:#92400e;margin:8px 0 0 28px">
-            Resume is aggressively tailored to the JD. Verification loop ensures 85%+ match score. 
-            You confirm all information is truthful.
-          </p>
-        </div>
-        <div class="btn-group">
-          <button id="back-to-upload" class="btn btn-secondary" onclick="app.reset()">← Back</button>
-          <button id="analyze-btn" class="btn btn-primary">Analyze Resume</button>
+        <div class="hero-stats">
+          <div class="hero-stat"><div class="hero-stat-num">10+</div><div class="hero-stat-label">AI Tools</div></div>
+          <div class="hero-stat"><div class="hero-stat-num">85%</div><div class="hero-stat-label">Shortlist Score</div></div>
+          <div class="hero-stat"><div class="hero-stat-num">5</div><div class="hero-stat-label">ATS Templates</div></div>
+          <div class="hero-stat"><div class="hero-stat-num">∞</div><div class="hero-stat-label">Free Analysis</div></div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <div id="step-analyze" class="step hidden">
-      <div class="card">
-        <h2>Gap Analysis</h2>
-        <div id="match-score-display">
-          <div id="match-score">--</div>
-          <div class="score-label">Overall Match Score</div>
-        </div>
-        <div id="gap-list"></div>
-        <div class="btn-group" style="flex-wrap:wrap;gap:8px">
-          <button id="full-rewrite-btn" class="btn btn-primary">Generate Full Rewritten Resume</button>
-          <button id="simulate-btn" class="btn btn-primary">Simulate Recruiter Search</button>
-          <button id="cover-letter-btn" class="btn btn-primary" style="background:#7c3aed;border-color:#7c3aed">Generate Cover Letter</button>
-          <button id="keywords-btn" class="btn btn-primary" style="background:#0891b2;border-color:#0891b2">Keyword Optimizer</button>
-          <button id="score-btn" class="btn btn-primary" style="background:#059669;border-color:#059669">Score Resume</button>
-          <button id="questions-btn" class="btn btn-primary" style="background:#d97706;border-color:#d97706">Interview Questions</button>
-          <button id="ats-breakdown-btn" class="btn btn-primary" style="background:#dc2626;border-color:#dc2626">ATS Platform Breakdown</button>
-          <button id="shortlist-btn" class="btn btn-primary" style="background:#d97706;border-color:#d97706;font-weight:700">🎯 Generate Shortlist Resume</button>
-          <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="step-full-rewrite" class="step hidden">
-      <div class="card">
-        <h2>Your Rewritten Resume</h2>
-        <p>The full resume has been rewritten to address all identified gaps.</p>
-        <div id="full-rewrite-result" class="hidden">
-          <h4>Changes Made</h4>
-          <ul id="full-rewrite-changes" style="margin-bottom:16px"></ul>
-          <h4>Complete Resume</h4>
-          <pre id="full-rewrite-text" style="white-space:pre-wrap;background:#f8f9fa;padding:16px;border-radius:8px;font-size:0.9rem;line-height:1.6;max-height:500px;overflow-y:auto"></pre>
-          <div class="btn-group" style="flex-wrap:wrap;gap:8px">
-            <button id="copy-full-rewrite" class="btn btn-primary" onclick="(() => { navigator.clipboard.writeText(document.getElementById('full-rewrite-text').textContent).then(() => { const b=document.getElementById('copy-full-rewrite'); b.textContent='Copied!'; setTimeout(()=>b.textContent='Copy to Clipboard',2000); }); })()">Copy to Clipboard</button>
-            <button id="download-txt" class="btn btn-primary" style="background:#0891b2;border-color:#0891b2">Download as Text</button>
-            <button id="download-pdf" class="btn btn-primary" style="background:#7c3aed;border-color:#7c3aed">Save as PDF</button>
-            <button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button>
-            <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
+    <!-- FEATURES -->
+    <section class="section features">
+      <div class="container">
+        <div class="section-title"><h2>Everything You Need to Land the Job</h2><p>From ATS analysis to complete resume rewriting — one platform.</p></div>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-icon">🔍</div>
+            <h3>Gap Analysis</h3>
+            <p>Compare your resume against any JD. Get precise missing skills with importance ratings and recruiter reasoning.</p>
+            <span class="feature-tag">AI-Powered</span>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">✍️</div>
+            <h3>AI Rewriting</h3>
+            <p>Rewrite individual bullets or your entire resume. STAR format, stronger verbs, JD-tailored language.</p>
+            <span class="feature-tag">Targeted</span>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🎯</div>
+            <h3>Shortlist Mode</h3>
+            <p>Guaranteed 85%+ ATS match. Verification loop rewrites iteratively until your resume scores above the threshold.</p>
+            <span class="feature-tag">Exclusive</span>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📄</div>
+            <h3>Cover Letters</h3>
+            <p>Generate tailored cover letters matching the job description. Professional tone with quantified achievements.</p>
+            <span class="feature-tag">Auto-Generated</span>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🏷️</div>
+            <h3>Keyword Optimizer</h3>
+            <p>Extract critical keywords from any JD. See exactly what's missing and how to add it naturally.</p>
+            <span class="feature-tag">ATS-Focused</span>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3>Resume Scoring</h3>
+            <p>Get a detailed 0-100 score across keyword match, experience alignment, skills, and format.</p>
+            <span class="feature-tag">Detailed</span>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🎤</div>
+            <h3>Interview Prep</h3>
+            <p>Generate role-specific practice questions based on your resume and the JD. Categorized by difficulty.</p>
+            <span class="feature-tag">Practice</span>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">⚙️</div>
+            <h3>ATS Breakdown</h3>
+            <p>Test against Greenhouse, Workday, Lever, iCIMS, Taleo. Parseability + keyword + section checks.</p>
+            <span class="feature-tag">Multi-Platform</span>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📋</div>
+            <h3>ATS Templates</h3>
+            <p>5 professionally designed ATS-friendly templates. AI recommends the best one for your resume and target role.</p>
+            <span class="feature-tag">New</span>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">💡</div>
+            <h3>Smart Recommendations</h3>
+            <p>Personalized action plan with quick wins, courses, micropractices, and upskilling roadmap.</p>
+            <span class="feature-tag">New</span>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔎</div>
+            <h3>Recruiter Simulator</h3>
+            <p>See how your resume performs in real Boolean searches. Understand recruiter visibility.</p>
+            <span class="feature-tag">Insight</span>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔄</div>
+            <h3>Auto-Fallback AI</h3>
+            <p>Never wait. If one AI provider hits limits, the system auto-routes to another — zero downtime.</p>
+            <span class="feature-tag">Reliable</span>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <div id="step-cover-letter" class="step hidden">
-      <div class="card">
-        <h2>Cover Letter</h2>
-        <div id="cover-letter-result" class="hidden">
-          <p id="cover-letter-subject" style="font-weight:600;color:#7c3aed;margin-bottom:12px"></p>
-          <pre id="cover-letter-text" style="white-space:pre-wrap;background:#f8f9fa;padding:16px;border-radius:8px;font-size:0.9rem;line-height:1.6;max-height:500px;overflow-y:auto;font-family:Georgia,serif"></pre>
-          <div id="cover-letter-points-container" style="margin-top:12px" class="hidden">
-            <h4>Key Points</h4>
-            <ul id="cover-letter-points"></ul>
+    <!-- HOW IT WORKS -->
+    <section class="section">
+      <div class="container">
+        <div class="section-title"><h2>How It Works</h2><p>Three simple steps to a better resume.</p></div>
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <h3>Upload Resume</h3>
+            <p>Drag & drop your PDF or paste your resume text. No signup needed. Your data stays private.</p>
+          </div>
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <h3>Paste Job Description</h3>
+            <p>Paste the job you want. Our AI analyzes your resume against every requirement.</p>
+          </div>
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <h3>Get Optimized</h3>
+            <p>Get gaps, rewritten resume, cover letter, score, shortlist, templates, and recommendations.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TEMPLATES SHOWCASE -->
+    <section class="section templates-section">
+      <div class="container">
+        <div class="section-title"><h2>ATS-Friendly Resume Templates</h2><p>Professionally designed layouts that actually pass automated screening.</p></div>
+        <div class="template-grid" id="template-grid">
+          <p style="grid-column:1/-1;text-align:center;color:var(--text-muted)">Loading templates...</p>
+        </div>
+        <div style="text-align:center;margin-top:24px">
+          <button class="btn btn-primary" id="rec-template-btn">🎯 AI-Recommend Template for My Resume</button>
+        </div>
+        <div id="template-rec-result" class="hidden" style="margin-top:16px"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===== TEMPLATES PAGE ===== -->
+  <div id="templates-page" class="page-section hidden">
+    <main class="container" style="padding-top:40px">
+      <section class="section" style="padding-top:0">
+        <div class="section-title"><h2>📋 Resume Templates</h2><p>ATS-optimized layouts designed by recruitment experts.</p></div>
+        <div class="template-grid" id="templates-full-grid"></div>
+        <div style="margin-top:32px">
+          <div class="card">
+            <h2>Get a Personal Template Recommendation</h2>
+            <p>Upload or paste your resume and let our AI recommend the best template for your target role.</p>
+            <textarea id="template-resume-input" rows="6" placeholder="Paste your resume text here..." style="margin-bottom:12px"></textarea>
+            <input type="text" id="template-jd-input" placeholder="Optional: Paste job description for better recommendation" style="margin-bottom:12px">
+            <button class="btn btn-primary" id="template-rec-btn-page">🎯 Recommend Template</button>
+            <div id="template-rec-result-page" class="hidden" style="margin-top:16px"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ===== DASHBOARD SECTIONS ===== (existing workflow steps) ===== -->
+  <div id="step-upload" class="page-section hidden">
+    <main class="container" style="padding-top:40px">
+      <div id="error-message" class="hidden"></div>
+      <div class="step">
+        <div class="card">
+          <h2>📄 Upload Your Resume</h2>
+          <p>Upload a PDF version of your resume. Your data stays private — nothing is stored.</p>
+          <div id="drop-zone" class="drop-zone">
+            <div class="drop-zone-icon">📄</div>
+            <p>Drag & drop your resume PDF here</p>
+            <p style="font-size:0.8rem">or</p>
+            <button id="browse-btn" class="btn btn-primary">Browse Files</button>
+            <input type="file" id="file-input" accept=".pdf" hidden>
+          </div>
+          <div id="file-info">No file selected</div>
+          <div id="extracted-text-container" class="hidden" style="margin-top:16px">
+            <label for="extracted-text" style="font-weight:600;font-size:0.9rem">Extracted Text (verify & edit if needed)</label>
+            <textarea id="extracted-text" rows="8" style="margin-top:8px" placeholder="Extracted resume text will appear here..."></textarea>
           </div>
           <div class="btn-group">
-            <button id="download-cover-letter" class="btn btn-primary" style="background:#7c3aed;border-color:#7c3aed">Download as Text</button>
-            <button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button>
-            <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
+            <button id="to-jd-btn" class="btn btn-primary">Continue →</button>
           </div>
         </div>
       </div>
-    </div>
+    </main>
+  </div>
 
-    <div id="step-keywords" class="step hidden">
-      <div class="card">
-        <h2>Keyword Optimizer</h2>
-        <div id="keywords-result" class="hidden">
-          <div id="keyword-stats" style="display:flex;gap:16px;justify-content:space-around;margin-bottom:16px;flex-wrap:wrap"></div>
-          <div id="keyword-recommendation" style="background:#f0fdf4;padding:12px;border-radius:8px;margin-bottom:16px;font-size:0.9rem;color:#166534"></div>
-          <h4>Keywords</h4>
-          <div id="keyword-list"></div>
-          <div class="btn-group">
-            <button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button>
-            <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
+  <div id="step-jd" class="page-section hidden">
+    <main class="container" style="padding-top:40px">
+      <div id="error-message-duplicate" class="hidden" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#ef4444;color:white;padding:12px 24px;border-radius:8px;font-size:0.9rem;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.15);max-width:90%"></div>
+      <div class="step">
+        <div class="card">
+          <h2>📋 Paste Job Description</h2>
+          <p>Paste the full job description you want to optimize for.</p>
+          <textarea id="jd-input" rows="8" placeholder="Paste the job description here..."></textarea>
+          <div style="margin-top:12px">
+            <label for="role-input" style="font-weight:600;font-size:0.9rem">Target Role (for recruiter simulation)</label>
+            <input type="text" id="role-input" placeholder="e.g., Senior Frontend Engineer" style="margin-top:4px">
           </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="step-score" class="step hidden">
-      <div class="card">
-        <h2>Resume Score</h2>
-        <div id="score-result" class="hidden">
-          <div id="score-overall" style="font-size:2.5rem;font-weight:700;text-align:center;margin:16px 0"></div>
-          <div id="scores-list"></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px">
-            <div>
-              <h4>Strengths</h4>
-              <ul id="score-strengths" style="color:#166534"></ul>
-            </div>
-            <div>
-              <h4>Weaknesses</h4>
-              <ul id="score-weaknesses" style="color:#dc2626"></ul>
-            </div>
-          </div>
-          <h4 style="margin-top:16px">Priority Fixes</h4>
-          <ol id="score-fixes" style="background:#fefce8;padding:16px 32px;border-radius:8px"></ol>
-          <div class="btn-group">
-            <button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button>
-            <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="step-questions" class="step hidden">
-      <div class="card">
-        <h2>Interview Preparation Questions</h2>
-        <p>Practice questions based on your resume, the job description, and identified gaps.</p>
-        <div id="questions-result" class="hidden">
-          <div id="questions-list"></div>
-          <div class="btn-group">
-            <button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button>
-            <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="step-ats" class="step hidden">
-      <div class="card">
-        <h2>ATS Platform Breakdown</h2>
-        <p>See how your resume scores on different ATS platforms.</p>
-        <div style="margin-bottom:16px">
-          <label for="ats-platform-select" style="font-weight:600;font-size:0.9rem">Select ATS Platform:</label>
-          <select id="ats-platform-select" style="margin-left:8px;padding:6px 12px;border-radius:6px;border:1px solid #ccc">
-            <option value="greenhouse">Greenhouse</option>
-            <option value="workday">Workday</option>
-            <option value="lever">Lever</option>
-            <option value="icims">iCIMS</option>
-            <option value="taleo">Taleo</option>
-          </select>
-        </div>
-        <div id="ats-result" class="hidden">
-          <h3 id="ats-platform-name" style="color:#6366f1"></h3>
-          <div id="ats-platform-score" style="font-size:2rem;font-weight:700;text-align:center;margin:12px 0"></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-            <div id="ats-parseability" style="background:#f8f9fa;padding:12px;border-radius:8px"></div>
-            <div id="ats-keywords" style="background:#f8f9fa;padding:12px;border-radius:8px"></div>
-          </div>
-          <div id="ats-sections" style="background:#f8f9fa;padding:12px;border-radius:8px;margin-top:12px"></div>
-          <p id="ats-feedback" style="background:#eef2ff;padding:12px;border-radius:8px;margin-top:12px;font-size:0.9rem"></p>
-          <h4 style="margin-top:12px">Action Items</h4>
-          <ul id="ats-actions" style="background:#f0fdf4;padding:16px 32px;border-radius:8px"></ul>
-          <div class="btn-group">
-            <button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button>
-            <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="step-rewrite" class="step hidden">
-      <div class="card">
-        <h2>Rewritten Bullets</h2>
-        <div class="compare-grid">
-          <div class="compare-col">
-            <h4>Original</h4>
-            <ul id="original-bullets"></ul>
-          </div>
-          <div class="compare-col">
-            <h4>Rewritten</h4>
-            <ul id="rewritten-bullets"></ul>
-          </div>
-        </div>
-        <p id="rewrite-explanation"></p>
-        <div class="btn-group">
-          <button id="copy-rewrite" class="btn btn-primary">Copy to Clipboard</button>
-          <button id="back-to-analyze" class="btn btn-secondary">← Back to Gaps</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="step-simulate" class="step hidden">
-      <div class="card">
-        <h2>Recruiter Search Simulator</h2>
-        <p>How your resume would appear in real recruiter Boolean searches.</p>
-        <div id="match-score-display">
-          <div id="match-rate">--</div>
-          <div class="score-label">Recruiter Search Match Rate</div>
-          <div class="progress-bar">
-            <div id="match-bar" class="progress-fill" style="width:0%"></div>
-          </div>
-        </div>
-        <div style="overflow-x:auto">
-          <table id="simulation-table">
-            <thead>
-              <tr>
-                <th style="width:35%">Recruiter Search Query</th>
-                <th style="width:10%">Match?</th>
-                <th>Why</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button>
-          <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="step-shortlist" class="step hidden">
-      <div class="card">
-        <div id="shortlist-badge" style="text-align:center;padding:20px;margin-bottom:16px;border-radius:12px">
-          <div id="shortlist-badge-icon" style="font-size:3rem;margin-bottom:8px">⏳</div>
-          <div id="shortlist-badge-text" style="font-size:1.5rem;font-weight:800">Processing...</div>
-          <div id="shortlist-score" style="font-size:2rem;font-weight:700;margin:8px 0">--/100</div>
-          <div class="progress-bar" style="max-width:300px;margin:8px auto">
-            <div id="shortlist-progress-bar" class="progress-fill" style="width:0%"></div>
-          </div>
-        </div>
-
-        <h3>Iteration Log</h3>
-        <div id="shortlist-iterations" style="margin-bottom:16px"></div>
-
-        <div id="shortlist-resume-container" class="hidden">
-          <h3>Compare: Original vs Shortlist Resume</h3>
-          <div class="compare-grid">
-            <div class="compare-col" style="background:#fef2f2">
-              <h4 style="color:#dc2626">Original Resume</h4>
-              <pre id="shortlist-original-text" style="white-space:pre-wrap;font-size:0.8rem;line-height:1.5;max-height:400px;overflow-y:auto;background:transparent;border:none;padding:0;font-family:inherit"></pre>
-            </div>
-            <div class="compare-col" style="background:#f0fdf4">
-              <h4 style="color:#16a34a">Shortlist Optimized</h4>
-              <pre id="shortlist-resume-text" style="white-space:pre-wrap;font-size:0.8rem;line-height:1.5;max-height:400px;overflow-y:auto;background:transparent;border:none;padding:0;font-family:inherit"></pre>
-            </div>
-          </div>
-          <div id="shortlist-changes" style="background:#fefce8;padding:12px;border-radius:8px;margin:12px 0;font-size:0.85rem;white-space:pre-wrap"></div>
-
-          <div id="shortlist-disclaimer" style="background:#f0fdf4;padding:16px;border-radius:8px;margin:16px 0;border:2px solid #22c55e">
-            <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
-              <input type="checkbox" id="shortlist-agree-check">
-              <div>
-                <strong>I verify that all information in my resume is truthful and accurate.</strong>
-                <p style="font-size:0.8rem;color:#666;margin-top:4px">
-                  I understand ResuBoost optimizes keyword matching and formatting. I take full responsibility 
-                  for the content of my application. I confirm I have not added fabricated experience, 
-                  degrees, or certifications.
-                </p>
-              </div>
+          <div style="margin-top:16px;padding:16px;background:#fefce8;border-radius:8px;border:2px solid #eab308">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600">
+              <input type="checkbox" id="shortlist-mode-toggle"> 🎯 Shortlist Mode — Guaranteed Round 1 Pass
             </label>
+            <p style="font-size:0.8rem;color:#92400e;margin:8px 0 0 28px">Resume is aggressively tailored to the JD. Verification loop ensures 85%+ match score. You confirm all information is truthful.</p>
           </div>
-
           <div class="btn-group">
-            <button id="shortlist-download-btn" class="btn btn-primary" disabled>✅ Agree to Terms to Download</button>
+            <button class="btn btn-secondary" onclick="app.nav('step-upload')">← Back</button>
+            <button id="analyze-btn" class="btn btn-primary">Analyze Resume</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="step-analyze" class="page-section hidden">
+    <main class="container" style="padding-top:40px">
+      <div class="step">
+        <div class="card">
+          <h2>📊 Gap Analysis</h2>
+          <div id="match-score-display">
+            <div id="match-score">--</div>
+            <div class="score-label">Overall Match Score</div>
+          </div>
+          <div id="gap-list"></div>
+          <div class="btn-group" style="flex-wrap:wrap;gap:8px">
+            <button id="full-rewrite-btn" class="btn btn-primary">Generate Full Rewritten Resume</button>
+            <button id="simulate-btn" class="btn btn-primary">Simulate Recruiter Search</button>
+            <button id="cover-letter-btn" class="btn btn-primary" style="background:#7c3aed;border-color:#7c3aed">Generate Cover Letter</button>
+            <button id="keywords-btn" class="btn btn-primary" style="background:#0891b2;border-color:#0891b2">Keyword Optimizer</button>
+            <button id="score-btn" class="btn btn-primary" style="background:#059669;border-color:#059669">Score Resume</button>
+            <button id="questions-btn" class="btn btn-primary" style="background:#d97706;border-color:#d97706">Interview Questions</button>
+            <button id="ats-breakdown-btn" class="btn btn-primary" style="background:#dc2626;border-color:#dc2626">ATS Platform Breakdown</button>
+            <button id="recommend-btn" class="btn btn-primary" style="background:#7c3aed;border-color:#7c3aed">💡 Smart Recommendations</button>
+            <button id="shortlist-btn" class="btn btn-primary" style="background:#d97706;border-color:#d97706;font-weight:700">🎯 Generate Shortlist Resume</button>
+            <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- All existing step results (rewrite, simulate, cover letter, keywords, score, questions, ATS, shortlist, full rewrite) -->
+  <div id="step-rewrite" class="page-section hidden">
+    <main class="container" style="padding-top:40px"><div class="step"><div class="card"><h2>✍️ Rewritten Bullets</h2>
+    <div class="compare-grid"><div class="compare-col"><h4>Original</h4><ul id="original-bullets"></ul></div><div class="compare-col"><h4>Rewritten</h4><ul id="rewritten-bullets"></ul></div></div>
+    <p id="rewrite-explanation"></p><div class="btn-group"><button id="copy-rewrite" class="btn btn-primary">Copy to Clipboard</button><button class="btn btn-secondary back-to-analyze-btn">← Back to Gaps</button></div></div></div></main>
+  </div>
+
+  <div id="step-simulate" class="page-section hidden">
+    <main class="container" style="padding-top:40px"><div class="step"><div class="card"><h2>🔎 Recruiter Search Simulator</h2>
+    <div id="match-score-display"><div id="match-rate">--</div><div class="score-label">Recruiter Search Match Rate</div><div class="progress-bar"><div id="match-bar" class="progress-fill" style="width:0%"></div></div></div>
+    <div style="overflow-x:auto"><table id="simulation-table"><thead><tr><th style="width:35%">Recruiter Search Query</th><th style="width:10%">Match?</th><th>Why</th></tr></thead><tbody></tbody></table></div>
+    <div class="btn-group"><button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button><button class="btn btn-secondary" onclick="app.reset()">New Analysis</button></div></div></div></main>
+  </div>
+
+  <div id="step-cover-letter" class="page-section hidden">
+    <main class="container" style="padding-top:40px"><div class="step"><div class="card"><h2>✉️ Cover Letter</h2>
+    <div id="cover-letter-result" class="hidden">
+      <p id="cover-letter-subject" style="font-weight:600;color:#7c3aed;margin-bottom:12px"></p>
+      <pre id="cover-letter-text" style="white-space:pre-wrap;background:#f8f9fa;padding:16px;border-radius:8px;font-size:0.9rem;line-height:1.6;max-height:500px;overflow-y:auto;font-family:Georgia,serif"></pre>
+      <div id="cover-letter-points-container" style="margin-top:12px" class="hidden"><h4>Key Points</h4><ul id="cover-letter-points"></ul></div>
+      <div class="btn-group"><button id="download-cover-letter" class="btn btn-primary" style="background:#7c3aed;border-color:#7c3aed">Download as Text</button><button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button><button class="btn btn-secondary" onclick="app.reset()">New Analysis</button></div>
+    </div></div></div></main>
+  </div>
+
+  <div id="step-keywords" class="page-section hidden">
+    <main class="container" style="padding-top:40px"><div class="step"><div class="card"><h2>🏷️ Keyword Optimizer</h2>
+    <div id="keywords-result" class="hidden">
+      <div id="keyword-stats" style="display:flex;gap:16px;justify-content:space-around;margin-bottom:16px;flex-wrap:wrap"></div>
+      <div id="keyword-recommendation" style="background:#f0fdf4;padding:12px;border-radius:8px;margin-bottom:16px;font-size:0.9rem;color:#166534"></div>
+      <h4>Keywords</h4><div id="keyword-list"></div>
+      <div class="btn-group"><button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button><button class="btn btn-secondary" onclick="app.reset()">New Analysis</button></div>
+    </div></div></div></main>
+  </div>
+
+  <div id="step-score" class="page-section hidden">
+    <main class="container" style="padding-top:40px"><div class="step"><div class="card"><h2>📊 Resume Score</h2>
+    <div id="score-result" class="hidden">
+      <div id="score-overall" style="font-size:2.5rem;font-weight:700;text-align:center;margin:16px 0"></div>
+      <div id="scores-list"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px"><div><h4>Strengths</h4><ul id="score-strengths" style="color:#166534"></ul></div><div><h4>Weaknesses</h4><ul id="score-weaknesses" style="color:#dc2626"></ul></div></div>
+      <h4 style="margin-top:16px">Priority Fixes</h4><ol id="score-fixes" style="background:#fefce8;padding:16px 32px;border-radius:8px"></ol>
+      <div class="btn-group"><button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button><button class="btn btn-secondary" onclick="app.reset()">New Analysis</button></div>
+    </div></div></div></main>
+  </div>
+
+  <div id="step-questions" class="page-section hidden">
+    <main class="container" style="padding-top:40px"><div class="step"><div class="card"><h2>🎤 Interview Preparation Questions</h2>
+    <p>Practice questions based on your resume, the job description, and identified gaps.</p>
+    <div id="questions-result" class="hidden"><div id="questions-list"></div>
+    <div class="btn-group"><button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button><button class="btn btn-secondary" onclick="app.reset()">New Analysis</button></div></div></div></div></main>
+  </div>
+
+  <div id="step-ats" class="page-section hidden">
+    <main class="container" style="padding-top:40px"><div class="step"><div class="card"><h2>⚙️ ATS Platform Breakdown</h2>
+    <p>See how your resume scores on different ATS platforms.</p>
+    <div style="margin-bottom:16px"><label for="ats-platform-select" style="font-weight:600;font-size:0.9rem">Select ATS Platform:</label>
+    <select id="ats-platform-select" style="margin-left:8px;padding:6px 12px;border-radius:6px;border:1px solid #ccc">
+      <option value="greenhouse">Greenhouse</option><option value="workday">Workday</option><option value="lever">Lever</option><option value="icims">iCIMS</option><option value="taleo">Taleo</option>
+    </select></div>
+    <div id="ats-result" class="hidden">
+      <h3 id="ats-platform-name" style="color:#6366f1"></h3><div id="ats-platform-score" style="font-size:2rem;font-weight:700;text-align:center;margin:12px 0"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div id="ats-parseability" style="background:#f8f9fa;padding:12px;border-radius:8px"></div><div id="ats-keywords" style="background:#f8f9fa;padding:12px;border-radius:8px"></div></div>
+      <div id="ats-sections" style="background:#f8f9fa;padding:12px;border-radius:8px;margin-top:12px"></div>
+      <p id="ats-feedback" style="background:#eef2ff;padding:12px;border-radius:8px;margin-top:12px;font-size:0.9rem"></p>
+      <h4 style="margin-top:12px">Action Items</h4><ul id="ats-actions" style="background:#f0fdf4;padding:16px 32px;border-radius:8px"></ul>
+      <div class="btn-group"><button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button><button class="btn btn-secondary" onclick="app.reset()">New Analysis</button></div>
+    </div></div></div></main>
+  </div>
+
+  <div id="step-full-rewrite" class="page-section hidden">
+    <main class="container" style="padding-top:40px"><div class="step"><div class="card"><h2>📄 Your Rewritten Resume</h2>
+    <p>The full resume has been rewritten to address all identified gaps.</p>
+    <div id="full-rewrite-result" class="hidden">
+      <h4>Changes Made</h4><ul id="full-rewrite-changes" style="margin-bottom:16px"></ul>
+      <h4>Complete Resume</h4>
+      <pre id="full-rewrite-text" style="white-space:pre-wrap;background:#f8f9fa;padding:16px;border-radius:8px;font-size:0.9rem;line-height:1.6;max-height:500px;overflow-y:auto"></pre>
+      <div class="btn-group" style="flex-wrap:wrap;gap:8px">
+        <button id="copy-full-rewrite" class="btn btn-primary" onclick="(()=>{navigator.clipboard.writeText(document.getElementById('full-rewrite-text').textContent).then(()=>{const b=document.getElementById('copy-full-rewrite');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy to Clipboard',2000);});})()">Copy to Clipboard</button>
+        <button id="download-txt" class="btn btn-primary" style="background:#0891b2;border-color:#0891b2">Download as Text</button>
+        <button id="download-pdf" class="btn btn-primary" style="background:#7c3aed;border-color:#7c3aed">Save as PDF</button>
+        <button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button>
+        <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
+      </div>
+    </div></div></div></main>
+  </div>
+
+  <div id="step-shortlist" class="page-section hidden">
+    <main class="container" style="padding-top:40px"><div class="step"><div class="card">
+      <div id="shortlist-badge" style="text-align:center;padding:20px;margin-bottom:16px;border-radius:12px">
+        <div id="shortlist-badge-icon" style="font-size:3rem;margin-bottom:8px">⏳</div>
+        <div id="shortlist-badge-text" style="font-size:1.5rem;font-weight:800">Processing...</div>
+        <div id="shortlist-score" style="font-size:2rem;font-weight:700;margin:8px 0">--/100</div>
+        <div class="progress-bar" style="max-width:300px;margin:8px auto"><div id="shortlist-progress-bar" class="progress-fill" style="width:0%"></div></div>
+      </div>
+      <h3>Iteration Log</h3><div id="shortlist-iterations" style="margin-bottom:16px"></div>
+      <div id="shortlist-resume-container" class="hidden">
+        <h3>Compare: Original vs Shortlist Resume</h3>
+        <div class="compare-grid">
+          <div class="compare-col" style="background:#fef2f2"><h4 style="color:#dc2626">Original Resume</h4><pre id="shortlist-original-text" style="white-space:pre-wrap;font-size:0.8rem;line-height:1.5;max-height:400px;overflow-y:auto;background:transparent;border:none;padding:0;font-family:inherit"></pre></div>
+          <div class="compare-col" style="background:#f0fdf4"><h4 style="color:#16a34a">Shortlist Optimized</h4><pre id="shortlist-resume-text" style="white-space:pre-wrap;font-size:0.8rem;line-height:1.5;max-height:400px;overflow-y:auto;background:transparent;border:none;padding:0;font-family:inherit"></pre></div>
+        </div>
+        <h4>Changes Summary</h4><div id="shortlist-changes" style="background:#fefce8;padding:12px;border-radius:8px;margin:12px 0;font-size:0.85rem;white-space:pre-wrap;line-height:1.5"></div>
+        <div id="shortlist-disclaimer" style="background:#f0fdf4;padding:16px;border-radius:8px;margin:16px 0;border:2px solid #22c55e">
+          <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
+            <input type="checkbox" id="shortlist-agree-check"> <div><strong>I confirm that all information in the original resume is truthful and factual.</strong><p style="font-size:0.8rem;color:#666;margin-top:4px">The shortlist resume is an optimized version of my original content. I take full responsibility for its accuracy.</p></div>
+          </label>
+        </div>
+        <div class="btn-group"><button id="shortlist-download-btn" class="btn btn-primary" disabled>✅ Agree to Terms to Download</button><button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button><button class="btn btn-secondary" onclick="app.reset()">New Analysis</button></div>
+      </div>
+    </div></div></main>
+  </div>
+
+  <!-- ===== NEW: Recommendations Step ===== -->
+  <div id="step-recommendations" class="page-section hidden">
+    <main class="container" style="padding-top:40px">
+      <div class="step">
+        <div class="card">
+          <h2>💡 Smart Recommendations</h2>
+          <p>Personalized action plan based on your resume and target role.</p>
+          <div id="recommendations-panel" class="hidden"></div>
+          <div class="btn-group">
             <button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button>
             <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
           </div>
         </div>
       </div>
-    </div>
+    </main>
+  </div>
 
-    <footer>
-      <p>ResuBoost — 100% free. No account needed. Your data stays in your browser.</p>
-    </footer>
-  </main>
+  <!-- FOOTER -->
+  <footer>
+    <p>ResuBoost — AI Resume Optimization Platform. Not affiliated with any ATS vendor.</p>
+    <p style="margin-top:4px">Your data is processed in memory and never stored.</p>
+  </footer>
 
+  <!-- SCRIPTS -->
   <script src="js/config.js"></script>
   <script src="js/parser.js"></script>
   <script src="js/api.js"></script>
