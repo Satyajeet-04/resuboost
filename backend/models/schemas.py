@@ -221,3 +221,4 @@ class ShortlistResponse(BaseModel):
     shortlist_verified: bool
     iterations: list[ShortlistIteration]
     changes_summary: str = ""
+    jd_keywords: list[str] = []

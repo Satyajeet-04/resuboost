@@ -226,6 +226,7 @@ const ui = (() => {
     const barEl = $('#shortlist-progress-bar'); if (barEl) barEl.style.width = '0%';
     const container = $('#shortlist-resume-container'); if (container) container.classList.add('hidden');
     const iterEl = $('#shortlist-iterations'); if (iterEl) iterEl.innerHTML = '<p style="color:#666">Running verification loop...</p>';
+    const kwEl = $('#shortlist-jd-keywords'); if (kwEl) kwEl.innerHTML = '';
   }
 
   function renderShortlistResult(data) {
@@ -248,6 +249,13 @@ const ui = (() => {
     if (scoreEl) { scoreEl.textContent = `${finalScore}/100`; scoreEl.style.color = isVerified ? '#22c55e' : '#eab308'; }
     const barEl = $('#shortlist-progress-bar');
     if (barEl) { barEl.style.width = `${finalScore}%`; barEl.style.backgroundColor = isVerified ? '#22c55e' : '#eab308'; }
+    // Show JD keywords
+    const kwEl = $('#shortlist-jd-keywords');
+    if (kwEl && data.jd_keywords && data.jd_keywords.length) {
+      kwEl.innerHTML = '<strong style="font-size:0.85rem;display:block;margin-bottom:6px">🔑 JD Keywords Injected:</strong> <div style="display:flex;flex-wrap:wrap;gap:4px">' +
+        data.jd_keywords.map(k => `<span style="background:#eff6ff;color:#1e40af;padding:2px 10px;border-radius:20px;font-size:0.75rem;border:1px solid #bfdbfe">${escapeHtml(k)}</span>`).join('') +
+        '</div>';
+    }
     const iterEl = $('#shortlist-iterations');
     if (iterEl && data.iterations) {
       iterEl.innerHTML = data.iterations.map(iter => {
@@ -268,7 +276,7 @@ const ui = (() => {
     const agreeCheck = $('#shortlist-agree-check');
     if (agreeCheck) agreeCheck.checked = false;
     const dlBtn = $('#shortlist-download-btn');
-    if (dlBtn) { dlBtn.disabled = true; dlBtn.textContent = '✅ Agree to Terms to Download'; }
+    if (dlBtn) { dlBtn.disabled = true; dlBtn.textContent = '✅ Agree to Download PDF'; }
   }
 
   // ===== Templates =====

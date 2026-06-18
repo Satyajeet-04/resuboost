@@ -12,19 +12,23 @@ OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 # Auto-routing: Groq (primary) -> OpenRouter (fallback on rate-limit / down)
 # Each task has a primary model (Groq) and a fallback model (OpenRouter).
 # ---------------------------------------------------------------------------
+# OpenRouter models with correct dash format (claude-3-5-haiku, not claude-3.5-haiku)
+OPENROUTER_FAST = "anthropic/claude-3-5-haiku"
+OPENROUTER_QUALITY = "anthropic/claude-3-5-sonnet"
+
 MODEL_ROUTES = {
-    "analyze":              {"groq": "llama-3.1-8b-instant",     "openrouter": "anthropic/claude-3.5-haiku"},
-    "rewrite":              {"groq": "llama-3.3-70b-versatile",  "openrouter": "anthropic/claude-3.5-sonnet"},
-    "full_rewrite":         {"groq": "llama-3.3-70b-versatile",  "openrouter": "anthropic/claude-3.5-sonnet"},
-    "simulate":             {"groq": "llama-3.3-70b-versatile",  "openrouter": "anthropic/claude-3.5-sonnet"},
-    "cover_letter":         {"groq": "llama-3.3-70b-versatile",  "openrouter": "anthropic/claude-3.5-sonnet"},
-    "keywords":             {"groq": "llama-3.1-8b-instant",     "openrouter": "anthropic/claude-3.5-haiku"},
-    "resume_scorer":        {"groq": "llama-3.3-70b-versatile",  "openrouter": "anthropic/claude-3.5-sonnet"},
-    "interview_questions":  {"groq": "llama-3.3-70b-versatile",  "openrouter": "anthropic/claude-3.5-sonnet"},
-    "ats_breakdown":        {"groq": "llama-3.1-8b-instant",     "openrouter": "anthropic/claude-3.5-haiku"},
-    "shortlist":            {"groq": "llama-3.3-70b-versatile",  "openrouter": "anthropic/claude-3.5-sonnet"},
-    "templates":            {"groq": "llama-3.1-8b-instant",     "openrouter": "anthropic/claude-3.5-haiku"},
-    "recommend":            {"groq": "llama-3.3-70b-versatile",  "openrouter": "anthropic/claude-3.5-sonnet"},
+    "analyze":              {"groq": "llama-3.1-8b-instant",     "openrouter": OPENROUTER_FAST},
+    "rewrite":              {"groq": "llama-3.3-70b-versatile",  "openrouter": OPENROUTER_QUALITY},
+    "full_rewrite":         {"groq": "llama-3.3-70b-versatile",  "openrouter": OPENROUTER_QUALITY},
+    "simulate":             {"groq": "llama-3.3-70b-versatile",  "openrouter": OPENROUTER_QUALITY},
+    "cover_letter":         {"groq": "llama-3.3-70b-versatile",  "openrouter": OPENROUTER_QUALITY},
+    "keywords":             {"groq": "llama-3.1-8b-instant",     "openrouter": OPENROUTER_FAST},
+    "resume_scorer":        {"groq": "llama-3.1-8b-instant",    "openrouter": OPENROUTER_FAST},
+    "interview_questions":  {"groq": "llama-3.3-70b-versatile",  "openrouter": OPENROUTER_QUALITY},
+    "ats_breakdown":        {"groq": "llama-3.1-8b-instant",     "openrouter": OPENROUTER_FAST},
+    "shortlist":            {"groq": "llama-3.3-70b-versatile",  "openrouter": OPENROUTER_QUALITY},
+    "templates":            {"groq": "llama-3.1-8b-instant",     "openrouter": OPENROUTER_FAST},
+    "recommend":            {"groq": "llama-3.1-8b-instant",    "openrouter": OPENROUTER_FAST},
 }
 
 # Per-task token limits (overrides default max_tokens)
@@ -42,6 +46,21 @@ TASK_MAX_TOKENS = {
     "templates": settings.max_tokens_templates,
     "recommend": settings.max_tokens_recommend,
 }
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+def _strip_markdown_fences(text: str) -> str:
+    """Remove markdown code fences (```json ... ``` or ``` ... ```) from text."""
+    import re
+    # Remove ```json ... ``` or ``` ... ``` blocks
+    text = re.sub(r'^```(?:json)?\s*\n', '', text, flags=re.MULTILINE)
+    text = re.sub(r'\n```\s*$', '', text, flags=re.MULTILINE)
+    # Remove single backtick fences
+    text = re.sub(r'^```(?:json)?', '', text)
+    text = re.sub(r'```$', '', text)
+    return text.strip()
+
 
 # ---------------------------------------------------------------------------
 # Simple in-memory response cache (keyed by prompt+model hash)
@@ -122,8 +141,12 @@ class GroqClient:
             "messages": messages,
             "temperature": settings.temperature,
             "max_tokens": self.max_tokens,
-            "response_format": {"type": "json_object"},
         }
+
+        # Only request JSON mode from providers that support it
+        # Groq supports response_format; OpenRouter doesn't for all models
+        if provider == "groq":
+            body["response_format"] = {"type": "json_object"}
 
         headers = {
             "Content-Type": "application/json",
@@ -152,6 +175,8 @@ class GroqClient:
                     text = choices[0].get("message", {}).get("content", "").strip()
                     if not text:
                         raise ValueError("Empty text in response")
+                    # Strip markdown code fences that some providers wrap JSON in
+                    text = _strip_markdown_fences(text)
                     return text
 
                 # Rate-limit / overload -> retry
