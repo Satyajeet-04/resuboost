@@ -193,17 +193,17 @@ class GroqClient:
                         continue
                     return None  # fallback to next provider
 
-                # Auth / bad-request -> fail fast
+                # Auth / bad-request -> fail fast, fallback to next provider
                 if error_code in (401, 403):
-                    raise Exception(f"[{provider}] Auth error {error_code}: check API key")
+                    return None
                 if error_code == 400:
                     body.pop("response_format", None)
                     if attempt < max_retries - 1:
                         time.sleep(1)
                         continue
-                    return None  # fallback after stripping format
+                    return None  # OpenRouter may not support JSON mode; try other provider
 
-                return None  # any other error -> fallback
+                return None  # any other error -> try next provider
 
             except requests.exceptions.Timeout:
                 if attempt < max_retries - 1:
