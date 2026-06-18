@@ -1,43 +1,27 @@
+"""Token-optimized recruiter search simulator."""
 from services.groq_client import GroqClient
 import json
 
-def build_simulate_prompt(resume: str, role: str) -> str:
-    return f"""You are a recruiter at a company hiring for: {role}
+PROMPT_TEMPLATE = """Role: {role}
 
-Generate 8 realistic Boolean search strings that recruiters would use in their ATS or LinkedIn Recruiter to find candidates for this role.
+Generate 8 Boolean search queries a recruiter would use. For each, say if this resume matches.
 
-For each query, evaluate whether this specific RESUME would appear.
+RESUME: {resume}
 
-RESUME:
-{resume}
-
-Return JSON:
+Respond JSON:
 {{
-  "queries": [
-    {{
-      "query": "boolean search string",
-      "match": true or false,
-      "why": "Matches because... | Does NOT match because..."
-    }}
-  ],
-  "match_rate": <integer 0-100>
+  "queries": [{{"query": "boolean", "match": bool, "why": "..."}}],
+  "match_rate": <0-100>
 }}
-
-Rules:
-- Vary specificity (some broad, some narrow).
-- 4 should match, 4 should NOT match.
-- For non-matches, explain exactly what's missing."""
+Rules: 4 should match, 4 shouldn't. Vary specificity."""
 
 class Simulator:
     def __init__(self):
         self.client = GroqClient(task_type="simulate")
 
     def simulate(self, resume: str, role: str) -> dict:
-        prompt = build_simulate_prompt(resume, role)
-        raw = self.client.generate(prompt)
+        raw = self.client.generate(PROMPT_TEMPLATE.format(resume=resume, role=role))
         result = json.loads(raw)
-        if not isinstance(result, dict):
-            raise ValueError(f"Expected dict, got {type(result).__name__}")
-        if "queries" not in result or "match_rate" not in result:
-            raise ValueError("Gemini response missing 'queries' or 'match_rate' fields")
+        if not isinstance(result, dict) or "queries" not in result or "match_rate" not in result:
+            raise ValueError("Invalid simulate response")
         return result

@@ -1,51 +1,31 @@
+"""Token-optimized gap analyzer. Compares resume to JD, identifies missing skills."""
 from services.groq_client import GroqClient
 import json
-from config import settings
 
-SYSTEM_INSTRUCTION = """You are a senior technical recruiter at a top tech company.
-You review thousands of resumes against job descriptions.
-Your analysis is precise, honest, and actionable."""
+SYSTEM = "You are a senior tech recruiter. Be precise, honest, actionable."
 
-def build_analyze_prompt(resume: str, jd: str) -> str:
-    return f"""Compare this RESUME against the JOB DESCRIPTION.
-Identify specific missing skills, qualifications, or experiences that would reduce interview chances.
+PROMPT_TEMPLATE = """Resume vs Job Description — find gaps that reduce interview chances.
 
 RESUME:
 {resume}
 
-JOB DESCRIPTION:
+JD:
 {jd}
 
-Return JSON:
+Respond JSON:
 {{
-  "gaps": [
-    {{
-      "skill": "exact skill or qualification name",
-      "importance": "high" | "medium" | "low",
-      "reason": "why this matters for this specific role, referencing the JD"
-    }}
-  ],
-  "match_score": <integer 0-100 indicating overall resume-JD fit>
+  "gaps": [{{"skill": "name", "importance": "high|medium|low", "reason": "why for this role"}}],
+  "match_score": <0-100>
 }}
-
-Rules:
-- Only flag genuine gaps (do not hallucinate requirements).
-- "high" = explicitly required in JD and completely absent
-- "medium" = mentioned in JD but weak in resume
-- "low" = nice-to-have in JD, not present
-- Maximum 12 gaps.
-- If resume has no gaps for this JD, return empty gaps array and score 100."""
+Rules: max 12 gaps. high=missing required, medium=weak, low=nice-to-have. Empty gaps + 100 if no gaps."""
 
 class GapAnalyzer:
     def __init__(self):
         self.client = GroqClient(task_type="analyze")
 
     def analyze(self, resume: str, jd: str) -> dict:
-        prompt = build_analyze_prompt(resume, jd)
-        raw = self.client.generate(prompt, system_instruction=SYSTEM_INSTRUCTION)
+        raw = self.client.generate(PROMPT_TEMPLATE.format(resume=resume, jd=jd), SYSTEM)
         result = json.loads(raw)
-        if not isinstance(result, dict):
-            raise ValueError(f"Expected dict, got {type(result).__name__}")
-        if "gaps" not in result or "match_score" not in result:
-            raise ValueError("Gemini response missing 'gaps' or 'match_score' fields")
+        if not isinstance(result, dict) or "gaps" not in result or "match_score" not in result:
+            raise ValueError("Invalid analyze response")
         return result

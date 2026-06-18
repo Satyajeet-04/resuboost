@@ -1,39 +1,27 @@
+"""Token-optimized bullet rewriter. Uses STAR format."""
 from services.groq_client import GroqClient
 import json
 
-def build_rewrite_prompt(resume: str, skill: str, context: str = "") -> str:
-    return f"""Rewrite the work experience bullets in this RESUME to better highlight: {skill}
+PROMPT_TEMPLATE = """Rewrite experience bullets to highlight: {skill}
 
-RESUME:
-{resume}
+RESUME: {resume}
+CONTEXT: {context}
 
-CONTEXT ABOUT THE TARGET ROLE:
-{context}
-
-Return JSON:
+Respond JSON:
 {{
-  "original": ["bullet 1", "bullet 2", ...],
-  "rewritten": ["rewritten bullet 1", "rewritten bullet 2", ...],
-  "explanation": "Brief explanation of how the rewrite adds this skill"
+  "original": ["bullet 1", ...],
+  "rewritten": ["bullet 1 (STAR)", ...],
+  "explanation": "brief"
 }}
-
-Rules:
-- Keep all facts truthful. Do NOT fabricate experience.
-- Use STAR format (Situation, Task, Action, Result) where possible.
-- Include measurable outcomes when available.
-- Preserve the original resume's tone and format.
-- Maximum 6 bullets."""
+Rules: factual only, use STAR, max 6 bullets, measurable outcomes when available."""
 
 class Rewriter:
     def __init__(self):
         self.client = GroqClient(task_type="rewrite")
 
     def rewrite(self, resume: str, skill: str, context: str = "") -> dict:
-        prompt = build_rewrite_prompt(resume, skill, context)
-        raw = self.client.generate(prompt)
+        raw = self.client.generate(PROMPT_TEMPLATE.format(resume=resume, skill=skill, context=context))
         result = json.loads(raw)
-        if not isinstance(result, dict):
-            raise ValueError(f"Expected dict, got {type(result).__name__}")
-        if "original" not in result or "rewritten" not in result:
-            raise ValueError("Gemini response missing 'original' or 'rewritten' fields")
+        if not isinstance(result, dict) or "original" not in result or "rewritten" not in result:
+            raise ValueError("Invalid rewrite response")
         return result

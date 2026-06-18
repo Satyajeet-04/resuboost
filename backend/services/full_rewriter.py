@@ -1,46 +1,28 @@
+"""Token-optimized full resume rewriter."""
 from services.groq_client import GroqClient
 import json
 
-def build_full_rewrite_prompt(resume: str, gaps: list[str], jd: str) -> str:
-    gap_list = ", ".join(gaps)
-    return f"""You are an expert resume writer. Rewrite the COMPLETE resume below to address ALL these missing skills: {gap_list}
+PROMPT_TEMPLATE = """Rewrite the COMPLETE resume to address missing skills: {gaps}
 
-JOB DESCRIPTION (target role):
-{jd}
+JD (target role): {jd}
 
-CURRENT RESUME:
-{resume}
+CURRENT RESUME: {resume}
 
-Return JSON. IMPORTANT: "full_resume" MUST be a single flat string of plain text, NOT a nested JSON object. It should be formatted as plain text resume with section headers like:
+Return JSON. "full_resume" MUST be plain text (no nested JSON), formatted with section headers:
 
-SUMMARY
-...
-EXPERIENCE
-...
-EDUCATION
-...
-SKILLS
-...
+SUMMARY\n...\nEXPERIENCE\n...\nEDUCATION\n...\nSKILLS\n...
 
 {{
-  "full_resume": "PLAIN TEXT RESUME HERE — do NOT use JSON objects inside this field",
-  "changes_summary": "Brief bullet points explaining what was changed and why"
+  "full_resume": "plain text resume",
+  "changes_summary": "what changed and why"
 }}
-
-RULES (CRITICAL):
-- "full_resume" MUST be a plain text string, NOT a JSON object or array
-- Do NOT fabricate experience. Only add skills in ways that are truthful based on the resume.
-- For skills that truly don't exist, add them in a Skills section as "Familiar with: X" or suggest learning them.
-- Preserve the original resume's sections and overall structure.
-- Use action verbs and STAR format for experience bullets.
-- Keep the rewrite natural and human-readable — not keyword-stuffed."""
+Rules: No fabricated experience. Add unfamiliar skills as 'Familiar with: X'. Use action verbs, STAR format. Natural, not keyword-stuffed."""
 
 class FullRewriter:
     def __init__(self):
         self.client = GroqClient(task_type="full_rewrite")
 
     def _flatten_to_text(self, obj) -> str:
-        """Convert any nested JSON object back to plain text resume format."""
         if isinstance(obj, str):
             return obj
         lines = []
@@ -72,28 +54,25 @@ class FullRewriter:
         return "\n".join(lines)
 
     def full_rewrite(self, resume: str, gaps: list[str], jd: str) -> dict:
-        prompt = build_full_rewrite_prompt(resume, gaps, jd)
-        raw = self.client.generate(prompt)
+        gap_str = ", ".join(gaps)
+        raw = self.client.generate(PROMPT_TEMPLATE.format(resume=resume, gaps=gap_str, jd=jd))
         result = json.loads(raw)
         if not isinstance(result, dict):
             raise ValueError(f"Expected dict, got {type(result).__name__}")
-        
+
         full_resume = result.get("full_resume", "")
-        # If full_resume is a nested JSON object, flatten it to plain text
         if not isinstance(full_resume, str):
             full_resume = self._flatten_to_text(full_resume)
-        
+
         changes = result.get("changes_summary", "")
         if not isinstance(changes, str):
             changes = self._flatten_to_text(changes)
-        
+
         if not full_resume or len(full_resume.strip()) < 50:
-            # Fallback: use the raw text
-            fallback_resume = raw.strip().strip('"')
-            if len(fallback_resume) > 200:
-                full_resume = fallback_resume
-                changes = changes or "Full resume rewritten to address missing skills."
+            fallback = raw.strip().strip('"')
+            if len(fallback) > 200:
+                full_resume = fallback
             else:
-                raise ValueError("Groq response missing 'full_resume' field")
-        
-        return {"full_resume": full_resume, "changes_summary": changes}
+                raise ValueError("Response missing valid 'full_resume' field")
+
+        return {"full_resume": full_resume, "changes_summary": changes or "Full resume rewritten."}

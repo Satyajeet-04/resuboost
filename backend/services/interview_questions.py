@@ -1,60 +1,36 @@
+"""Token-optimized interview question generator."""
 from services.groq_client import GroqClient
 import json
 
-INTERVIEW_SYSTEM = """You are a technical interview coach. Generate realistic interview questions based on resume gaps and job requirements. Focus on helping the candidate prepare for what they'll actually be asked."""
+SYSTEM = "You are a technical interview coach. Realistic questions based on gaps and job requirements."
 
-def build_questions_prompt(resume: str, jd: str, gaps: list) -> str:
-    gaps_text = "\n".join([f"- {g}" for g in gaps]) if gaps else "No specific gaps identified"
-    return f"""Generate likely interview questions for this candidate applying to this role.
+PROMPT_TEMPLATE = """Generate interview questions.
 
 RESUME:
 {resume}
 
-JOB DESCRIPTION:
+JD:
 {jd}
 
-IDENTIFIED GAPS:
-{gaps_text}
+GAPS:
+{gaps}
 
-Return JSON:
+Respond JSON:
 {{
-  "questions": [
-    {{
-      "question": "Walk me through a time you had to...",
-      "category": "behavioral",
-      "difficulty": "medium",
-      "why_asked": "This tests your experience with X, which is a key requirement",
-      "preparation_tip": "Use the STAR method: describe the Situation, Task, Action, and Result"
-    }}
-  ],
-  "total_questions": 8,
-  "categories_covered": ["technical", "behavioral", "system_design"]
+  "questions": [{{"question": "...", "category": "technical|behavioral|gap_focused|experience_deep_dive", "difficulty": "easy|medium|hard", "why_asked": "...", "preparation_tip": "..."}}],
+  "total_questions": int,
+  "categories_covered": ["cat1", ...]
 }}
-
-Generate 8-10 questions across these categories:
-1. technical — specific skills from the JD
-2. behavioral — STAR-format questions
-3. gap_focused — questions about missing skills (to assess learning ability)
-4. experience_deep_dive — questions about listed projects/roles
-
-Rules:
-- At least 2 questions should target the identified gaps
-- For gap-focused questions, include preparation tips on how to answer despite the gap
-- Difficulty levels: easy, medium, hard
-- Realistic questions a real interviewer would ask"""
+Rules: 8-10 questions. At least 2 targeting identified gaps. For gap questions, include prep tips on how to answer despite gap."""
 
 class InterviewQuestionGenerator:
     def __init__(self):
         self.client = GroqClient(task_type="interview_questions")
 
     def generate(self, resume: str, job_description: str, gaps: list = None) -> dict:
-        if gaps is None:
-            gaps = []
-        prompt = build_questions_prompt(resume, job_description, gaps)
-        raw = self.client.generate(prompt, system_instruction=INTERVIEW_SYSTEM)
+        gaps_text = "\n".join([f"- {g}" for g in (gaps or [])]) or "No specific gaps"
+        raw = self.client.generate(PROMPT_TEMPLATE.format(resume=resume, jd=job_description, gaps=gaps_text), SYSTEM)
         result = json.loads(raw)
-        if not isinstance(result, dict):
-            raise ValueError(f"Expected dict, got {type(result).__name__}")
-        if "questions" not in result:
-            raise ValueError("Response missing 'questions' field")
+        if not isinstance(result, dict) or "questions" not in result:
+            raise ValueError("Invalid interview_questions response")
         return result

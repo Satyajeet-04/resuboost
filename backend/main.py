@@ -12,6 +12,8 @@ from services.resume_scorer import ResumeScorer
 from services.interview_questions import InterviewQuestionGenerator
 from services.ats_breakdown import ATSBreakdown
 from services.shortlist import ShortlistEngine
+from services.templates import TemplateEngine
+from services.recommendations import RecommendationEngine
 from utils.sanitizer import sanitize
 from config import settings
 import json
@@ -212,6 +214,31 @@ async def ats_breakdown(req: AtsBreakdownRequest):
     try:
         result = ATSBreakdown(platform=req.platform).analyze(safe_resume, safe_jd)
         return {"result": result}
+    except json.JSONDecodeError:
+        raise HTTPException(502, "AI returned invalid response format")
+
+@app.get("/templates", response_model=TemplatesResponse)
+async def get_templates():
+    templates = TemplateEngine().get_all()
+    return {"templates": templates}
+
+@app.post("/templates/recommend", response_model=TemplateRecommendResponse)
+async def recommend_template(req: TemplateRecommendRequest):
+    safe_resume = sanitize(req.resume) if settings.strip_pii else req.resume
+    safe_jd = sanitize(req.job_description) if settings.strip_pii else req.job_description
+    try:
+        result = TemplateEngine().recommend(safe_resume, safe_jd)
+        return result
+    except json.JSONDecodeError:
+        raise HTTPException(502, "AI returned invalid response format")
+
+@app.post("/recommend", response_model=SmartRecommendResponse)
+async def smart_recommend(req: SmartRecommendRequest):
+    safe_resume = sanitize(req.resume) if settings.strip_pii else req.resume
+    safe_jd = sanitize(req.job_description) if settings.strip_pii else req.job_description
+    try:
+        result = RecommendationEngine().recommend(safe_resume, safe_jd)
+        return result
     except json.JSONDecodeError:
         raise HTTPException(502, "AI returned invalid response format")
 

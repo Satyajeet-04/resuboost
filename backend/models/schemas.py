@@ -149,6 +149,60 @@ class AtsBreakdownRequest(BaseModel):
 class AtsBreakdownResponse(BaseModel):
     result: AtsBreakdownResult
 
+# --- Resume Templates ---
+class TemplateItem(BaseModel):
+    id: str
+    name: str
+    description: str
+    preview: str = ""
+    best_for: list[str] = []
+    ats_score: int = Field(..., ge=0, le=100)
+
+class TemplatesResponse(BaseModel):
+    templates: list[TemplateItem]
+
+class TemplateRecommendRequest(BaseModel):
+    resume: str = Field(..., max_length=50000)
+    job_description: str = Field("", max_length=50000)
+
+class TemplateRecommendResponse(BaseModel):
+    recommended: list[TemplateItem]
+    reasoning: str = ""
+
+# --- Smart Recommendations ---
+class CourseRecommendation(BaseModel):
+    platform: str = ""
+    url: str = ""
+    title: str
+    reason: str = ""
+
+class Micropractice(BaseModel):
+    task: str
+    time_minutes: int = 15
+    difficulty: str = "easy"
+    impact: str = "high"
+
+class Recommendation(BaseModel):
+    category: str  # "upskill", "rewrite", "practice", "network"
+    priority: Literal["critical", "high", "medium", "low"]
+    title: str
+    description: str
+    actionable_steps: list[str] = []
+    courses: list[CourseRecommendation] = []
+    micropractices: list[Micropractice] = []
+    estimated_time: str = ""
+    roi: str = ""  # "quick_win", "high_impact", "long_term"
+
+class SmartRecommendRequest(BaseModel):
+    resume: str = Field(..., max_length=50000)
+    job_description: str = Field(..., max_length=50000)
+
+class SmartRecommendResponse(BaseModel):
+    recommendations: list[Recommendation]
+    quick_wins: list[str] = []
+    estimated_prep_time: str = ""
+    focus_area: str = ""
+
 # --- Shortlist Mode ---
 class ShortlistRequest(BaseModel):
     resume: str = Field(..., max_length=50000)
