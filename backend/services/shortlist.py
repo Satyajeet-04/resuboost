@@ -131,7 +131,7 @@ Return JSON:
             blended = max(kw_score, ai_score)  # take the higher of the two
             result["overall_score"] = blended
             # Add missing keywords as weaknesses if not already there
-            existing = [w.lower() for w in result.get("weaknesses", [])]
+            existing = [w.lower() for w in result.get("weaknesses", []) if w and isinstance(w, str)]
             for kw in kw_weaknesses:
                 if kw.lower() not in existing:
                     result["weaknesses"] = result.get("weaknesses", []) + [f"Missing keyword: {kw}"]
@@ -190,7 +190,7 @@ Return JSON:
         valid_kws = [k for k in jd_keywords if isinstance(k, str) and len(k) > 0]
         missing_kws = [k for k in valid_kws if k.lower() not in resume.lower()]
 
-        prompt = f"""You are an expert ATS resume optimizer. Your job: REWRITE this resume to score HIGH on ATS filters.
+        prompt = f"""You are an expert ATS resume optimizer. REWRITE this resume to score HIGH on ATS filters.
 
 JOB DESCRIPTION (TARGET):
 {jd[:3500]}
@@ -201,35 +201,56 @@ ORIGINAL RESUME:
 CURRENT VERSION:
 {resume[:3000]}
 
-JD KEYWORDS NOT IN RESUME (INJECT THESE):
+JD KEYWORDS NOT IN RESUME (INJECT):
 {', '.join(missing_kws[:15])}
 
 GAPS TO FIX:
 {', '.join(gaps)}
 
-{'⚠️ FINAL PASS - MAKE EVERY EFFORT' if final_pass else 'IMPROVE THIS RESUME'}
+{'FINAL PASS - MAXIMUM EFFORT' if final_pass else 'IMPROVE THIS RESUME'}
 
-INSTRUCTIONS (CRITICAL):
-1. **INJECT ALL missing JD keywords** into the Skills section. Add them as relevant skills.
-2. **Add JD keywords into experience bullets** naturally: "Leveraged AWS cloud infrastructure for scalable deployments with CI/CD pipelines"
-3. **Rewrite every bullet** using JD-specific language. If JD asks for "distributed systems" and resume says "built a web app", rewrite to "Designed and implemented a distributed web application architecture"
-4. **Add a professional summary** (3-5 sentences) that mirrors JD language and keywords
-5. **Categorize skills** into groups: Languages, Cloud & DevOps, Databases, Frameworks, Tools
-6. **Use stronger action verbs**: Architected, Engineered, Designed, Deployed, Optimized, Implemented, Led, Built
+OUTPUT FORMAT:
+Name
+Contact Info
+
+PROFESSIONAL SUMMARY
+[3-5 sentences mirroring JD language, incorporating key JD keywords naturally]
+
+SKILLS
+Languages: Python, Java, ...
+Cloud & DevOps: AWS, Docker, ...
+Frameworks: React, Node.js, ...
+Databases: SQL, ...
+Tools: Git, ...
+
+EXPERIENCE
+Company Name | Role | Dates
+- Rewritten bullet that naturally includes JD keywords as part of actual work context
+- Each bullet uses a DIFFERENT strong verb (Architected, Engineered, Optimized, Deployed, etc.)
+- Every bullet is unique in wording from the original
+
+EDUCATION
+Degree | School | Year
+
+INSTRUCTIONS:
+1. Create a PROFESSIONAL SUMMARY section incorporating JD language
+2. CATEGORIZE skills matching JD requirements (add missing keywords to appropriate groups)
+3. Rewrite experience bullets with DIFFERENT verbs and structure from original
+4. Each keyword appears ONCE naturally, not repeated in every bullet
+5. DONT say "leveraging [keyword]" more than once — vary the phrasing
 
 RULES:
-- KEEP: real company names, dates, degrees, certifications, job titles
-- YOU CAN ADD: any skill/keyword from the JD into skills section and as context in experience
-- NEVER add: fake degrees, fake employment, fake company names
-- Format: standard sections (Summary, Skills, Experience, Projects, Education)
-- NO tables, columns, graphics, markdown
+- KEEP: real company names, dates, degrees, certifications, titles
+- ADD: missing JD keywords naturally into skills and experience context
+- NEVER add: fake degrees, fake companies, fake credentials
+- NO tables, columns, markdown formatting
 
 Return JSON:
 {{{{
-  "full_resume": "COMPLETE rewritten resume — MUST include JD keywords naturally",
-  "changes_summary": "list what changed: e.g., 'Added AWS, Microservices, Docker skills', 'Rewrote experience bullet with distributed systems language'"
+  "full_resume": "the COMPLETE rewritten resume with all sections",
+  "changes_summary": "specific changes made"
 }}}}"""
-        system = "You are an ATS optimization engine. Inject missing JD keywords into the resume naturally. Rewrite every section for maximum ATS match while keeping facts true."
+        system = "You are an ATS resume expert. Create a keyword-optimized resume with natural language and clean structure. Never repeat the same phrasing twice."
 
         text = groq.generate(prompt, system)
         result = _robust_json_parse(text)
@@ -289,7 +310,9 @@ Return JSON:
             old_line = resume[after_start:bullet_end].strip()
             if keyword.lower() not in old_line.lower():
                 new_line = old_line.rstrip('.')
-                resume = resume[:bullet_end] + f", leveraging {keyword}" + resume[bullet_end:]
+                import random as _rnd
+                prefix = _rnd.choice([" utilizing ", " with expertise in ", ", experienced in ", ", skilled in ", ", proficient with "])
+                resume = resume[:bullet_end] + f"{prefix}{keyword}" + resume[bullet_end:]
         
         return resume
 
