@@ -354,5 +354,113 @@ const ui = (() => {
     }
   }
 
-  return { show, setLoading, renderGaps, renderRewrite, renderFullRewrite, renderSimulation, renderCoverLetter, renderKeywords, renderScore, renderInterviewQuestions, renderAtsBreakdown, showError, hideError, escapeHtml };
+  function renderShortlistLoading() {
+    const badgeEl = $('#shortlist-badge');
+    if (badgeEl) {
+      badgeEl.style.background = '#fefce8';
+      badgeEl.style.border = '2px solid #eab308';
+    }
+    const iconEl = $('#shortlist-badge-icon');
+    if (iconEl) iconEl.textContent = '⏳';
+    const textEl = $('#shortlist-badge-text');
+    if (textEl) textEl.textContent = 'Generating Shortlist Resume...';
+    const scoreEl = $('#shortlist-score');
+    if (scoreEl) scoreEl.textContent = '--/100';
+    const barEl = $('#shortlist-progress-bar');
+    if (barEl) barEl.style.width = '0%';
+    const container = $('#shortlist-resume-container');
+    if (container) container.classList.add('hidden');
+    const iterEl = $('#shortlist-iterations');
+    if (iterEl) iterEl.innerHTML = '<p style="color:#666">Running verification loop...</p>';
+  }
+
+  function renderShortlistResult(data) {
+    const isVerified = data.shortlist_verified;
+    const finalScore = data.final_score || 0;
+
+    // Badge
+    const badgeEl = $('#shortlist-badge');
+    if (badgeEl) {
+      if (isVerified) {
+        badgeEl.style.background = '#f0fdf4';
+        badgeEl.style.border = '2px solid #22c55e';
+      } else {
+        badgeEl.style.background = '#fefce8';
+        badgeEl.style.border = '2px solid #eab308';
+      }
+    }
+
+    const iconEl = $('#shortlist-badge-icon');
+    if (iconEl) iconEl.textContent = isVerified ? '✅' : '⚠️';
+
+    const textEl = $('#shortlist-badge-text');
+    if (textEl) {
+      textEl.textContent = isVerified
+        ? 'SHORTLIST VERIFIED — Ready for Round 1'
+        : `Score: ${finalScore}/100 — Consider manual review`;
+      textEl.style.color = isVerified ? '#16a34a' : '#ca8a04';
+    }
+
+    const scoreEl = $('#shortlist-score');
+    if (scoreEl) {
+      scoreEl.textContent = `${finalScore}/100`;
+      scoreEl.style.color = isVerified ? '#22c55e' : '#eab308';
+    }
+
+    const barEl = $('#shortlist-progress-bar');
+    if (barEl) {
+      barEl.style.width = `${finalScore}%`;
+      barEl.style.backgroundColor = isVerified ? '#22c55e' : '#eab308';
+    }
+
+    // Iterations
+    const iterEl = $('#shortlist-iterations');
+    if (iterEl && data.iterations) {
+      iterEl.innerHTML = data.iterations.map(iter => {
+        const passed = iter.score >= 85;
+        return `
+          <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;margin-bottom:8px;background:${passed ? '#f0fdf4' : '#fefce8'};border-radius:8px;border-left:4px solid ${passed ? '#22c55e' : '#eab308'}">
+            <span style="font-weight:700;font-size:0.9rem;min-width:80px">Iter ${iter.iteration}</span>
+            <div style="flex:1">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:0.85rem">Score: <strong style="color:${iter.score >= 85 ? '#16a34a' : '#ca8a04'}">${iter.score}/100</strong></span>
+                <span style="font-size:0.8rem;color:#666">${iter.remaining_weaknesses || 0} weaknesses</span>
+              </div>
+              <div class="progress-bar" style="height:6px;margin:4px 0">
+                <div class="progress-fill" style="width:${iter.score}%;height:6px;background:${iter.score >= 85 ? '#22c55e' : '#eab308'}"></div>
+              </div>
+            </div>
+            <span style="font-size:1.2rem">${passed ? '✅' : '🔄'}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Resume text
+    const resumeEl = $('#shortlist-resume-text');
+    if (resumeEl && data.resume) {
+      resumeEl.textContent = data.resume;
+    }
+
+    // Changes
+    const changesEl = $('#shortlist-changes');
+    if (changesEl && data.changes_summary) {
+      changesEl.textContent = data.changes_summary;
+    }
+
+    // Show container
+    const container = $('#shortlist-resume-container');
+    if (container) container.classList.remove('hidden');
+
+    // Reset disclaimer checkbox
+    const agreeCheck = $('#shortlist-agree-check');
+    if (agreeCheck) agreeCheck.checked = false;
+    const dlBtn = $('#shortlist-download-btn');
+    if (dlBtn) {
+      dlBtn.disabled = true;
+      dlBtn.textContent = '✅ Agree to Terms to Download';
+    }
+  }
+
+  return { show, setLoading, renderGaps, renderRewrite, renderFullRewrite, renderSimulation, renderCoverLetter, renderKeywords, renderScore, renderInterviewQuestions, renderAtsBreakdown, renderShortlistLoading, renderShortlistResult, showError, hideError, escapeHtml };
 })();

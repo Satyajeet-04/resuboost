@@ -49,6 +49,16 @@
           <label for="role-input" style="font-weight:600;font-size:0.9rem">Target Role (for recruiter simulation)</label>
           <input type="text" id="role-input" placeholder="e.g., Senior Frontend Engineer" style="margin-top:4px">
         </div>
+        <div style="margin-top:16px;padding:16px;background:#fefce8;border-radius:8px;border:2px solid #eab308">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600">
+            <input type="checkbox" id="shortlist-mode-toggle">
+            🎯 Shortlist Mode — Guaranteed Round 1 Pass
+          </label>
+          <p style="font-size:0.8rem;color:#92400e;margin:8px 0 0 28px">
+            Resume is aggressively tailored to the JD. Verification loop ensures 85%+ match score. 
+            You confirm all information is truthful.
+          </p>
+        </div>
         <div class="btn-group">
           <button id="back-to-upload" class="btn btn-secondary" onclick="app.reset()">← Back</button>
           <button id="analyze-btn" class="btn btn-primary">Analyze Resume</button>
@@ -72,6 +82,7 @@
           <button id="score-btn" class="btn btn-primary" style="background:#059669;border-color:#059669">Score Resume</button>
           <button id="questions-btn" class="btn btn-primary" style="background:#d97706;border-color:#d97706">Interview Questions</button>
           <button id="ats-breakdown-btn" class="btn btn-primary" style="background:#dc2626;border-color:#dc2626">ATS Platform Breakdown</button>
+          <button id="shortlist-btn" class="btn btn-primary" style="background:#d97706;border-color:#d97706;font-weight:700">🎯 Generate Shortlist Resume</button>
           <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
         </div>
       </div>
@@ -252,6 +263,48 @@
         <div class="btn-group">
           <button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button>
           <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="step-shortlist" class="step hidden">
+      <div class="card">
+        <div id="shortlist-badge" style="text-align:center;padding:20px;margin-bottom:16px;border-radius:12px">
+          <div id="shortlist-badge-icon" style="font-size:3rem;margin-bottom:8px">⏳</div>
+          <div id="shortlist-badge-text" style="font-size:1.5rem;font-weight:800">Processing...</div>
+          <div id="shortlist-score" style="font-size:2rem;font-weight:700;margin:8px 0">--/100</div>
+          <div class="progress-bar" style="max-width:300px;margin:8px auto">
+            <div id="shortlist-progress-bar" class="progress-fill" style="width:0%"></div>
+          </div>
+        </div>
+
+        <h3>Iteration Log</h3>
+        <div id="shortlist-iterations" style="margin-bottom:16px"></div>
+
+        <div id="shortlist-resume-container" class="hidden">
+          <h3>Your Shortlist Resume</h3>
+          <pre id="shortlist-resume-text" style="white-space:pre-wrap;background:#f8f9fa;padding:16px;border-radius:8px;font-size:0.9rem;line-height:1.6;max-height:500px;overflow-y:auto;border:1px solid #e5e7eb"></pre>
+          <div id="shortlist-changes" style="background:#fefce8;padding:12px;border-radius:8px;margin:12px 0;font-size:0.85rem;white-space:pre-wrap"></div>
+
+          <div id="shortlist-disclaimer" style="background:#f0fdf4;padding:16px;border-radius:8px;margin:16px 0;border:2px solid #22c55e">
+            <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
+              <input type="checkbox" id="shortlist-agree-check">
+              <div>
+                <strong>I verify that all information in my resume is truthful and accurate.</strong>
+                <p style="font-size:0.8rem;color:#666;margin-top:4px">
+                  I understand ResuBoost optimizes keyword matching and formatting. I take full responsibility 
+                  for the content of my application. I confirm I have not added fabricated experience, 
+                  degrees, or certifications.
+                </p>
+              </div>
+            </label>
+          </div>
+
+          <div class="btn-group">
+            <button id="shortlist-download-btn" class="btn btn-primary" disabled>✅ Agree to Terms to Download</button>
+            <button class="btn btn-secondary back-to-analyze-btn">← Back to Analysis</button>
+            <button class="btn btn-secondary" onclick="app.reset()">New Analysis</button>
+          </div>
         </div>
       </div>
     </div>

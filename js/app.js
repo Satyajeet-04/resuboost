@@ -8,6 +8,7 @@ window.app = (() => {
     matchScore: 0,
     rewriteResult: null,
     simulation: null,
+    shortlistResult: null,
     currentStep: 'upload'
   };
 
@@ -108,6 +109,25 @@ window.app = (() => {
     document.getElementById('score-btn')?.addEventListener('click', scoreResume);
     document.getElementById('questions-btn')?.addEventListener('click', generateQuestions);
     document.getElementById('ats-breakdown-btn')?.addEventListener('click', atsBreakdown);
+
+    document.getElementById('shortlist-btn')?.addEventListener('click', shortlist);
+
+    document.getElementById('shortlist-agree-check')?.addEventListener('change', (e) => {
+      const btn = document.getElementById('shortlist-download-btn');
+      if (btn) btn.disabled = !e.target.checked;
+    });
+
+    document.getElementById('shortlist-download-btn')?.addEventListener('click', () => {
+      const text = document.getElementById('shortlist-resume-text')?.textContent;
+      if (!text) return;
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'resuboost-shortlist-resume.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
 
     document.querySelectorAll('.back-to-analyze-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -340,6 +360,36 @@ window.app = (() => {
     }
   }
 
+  async function shortlist() {
+    ui.hideError();
+
+    const aggressiveMode = document.getElementById('shortlist-mode-toggle')?.checked || false;
+
+    if (!state.jdText) {
+      ui.showError('Please paste a job description first.');
+      return;
+    }
+
+    ui.setLoading('shortlist-btn', true);
+    ui.show('step-shortlist');
+    ui.renderShortlistLoading();
+
+    try {
+      const result = await api.client.shortlist(state.resumeText, state.jdText, aggressiveMode);
+      state.shortlistResult = result;
+      ui.renderShortlistResult(result);
+    } catch (err) {
+      if (err instanceof api.RateLimitError) {
+        ui.showError('⚠️ Rate limit reached. Please wait 30-60 seconds, then try again.');
+      } else {
+        ui.showError(`Shortlist failed: ${err.message}`);
+      }
+      ui.show('step-analyze');
+    } finally {
+      ui.setLoading('shortlist-btn', false);
+    }
+  }
+
   async function fullRewrite() {
     ui.hideError();
 
@@ -373,6 +423,7 @@ window.app = (() => {
     state.gaps = null;
     state.rewriteResult = null;
     state.simulation = null;
+    state.shortlistResult = null;
     state.selectedAtsPlatform = 'greenhouse';
 
     document.getElementById('file-input').value = '';
@@ -389,6 +440,10 @@ window.app = (() => {
     document.getElementById('score-result')?.classList.add('hidden');
     document.getElementById('questions-result')?.classList.add('hidden');
     document.getElementById('ats-result')?.classList.add('hidden');
+    document.getElementById('shortlist-resume-container')?.classList.add('hidden');
+    document.getElementById('shortlist-agree-check') && (document.getElementById('shortlist-agree-check').checked = false);
+    const dlBtn = document.getElementById('shortlist-download-btn');
+    if (dlBtn) dlBtn.disabled = true;
 
     ui.show('step-upload');
   }
@@ -407,5 +462,5 @@ window.app = (() => {
   }
 
   document.addEventListener('DOMContentLoaded', init);
-  return { init, analyze, rewrite, fullRewrite, simulate, generateCoverLetter, analyzeKeywords, scoreResume, generateQuestions, atsBreakdown, reset };
+  return { init, analyze, rewrite, fullRewrite, simulate, generateCoverLetter, analyzeKeywords, scoreResume, generateQuestions, atsBreakdown, shortlist, reset };
 })();

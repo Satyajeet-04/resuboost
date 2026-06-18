@@ -11,6 +11,7 @@ from services.keywords import KeywordAnalyzer
 from services.resume_scorer import ResumeScorer
 from services.interview_questions import InterviewQuestionGenerator
 from services.ats_breakdown import ATSBreakdown
+from services.shortlist import ShortlistEngine
 from utils.sanitizer import sanitize
 from config import settings
 import json
@@ -211,5 +212,19 @@ async def ats_breakdown(req: AtsBreakdownRequest):
     try:
         result = ATSBreakdown(platform=req.platform).analyze(safe_resume, safe_jd)
         return {"result": result}
+    except json.JSONDecodeError:
+        raise HTTPException(502, "AI returned invalid response format")
+
+@app.post("/shortlist", response_model=ShortlistResponse)
+async def shortlist(req: ShortlistRequest):
+    safe_resume = sanitize(req.resume) if settings.strip_pii else req.resume
+    safe_jd = sanitize(req.job_description) if settings.strip_pii else req.job_description
+    if len(safe_resume) > settings.max_input_length:
+        safe_resume = safe_resume[:settings.max_input_length]
+    if len(safe_jd) > settings.max_input_length:
+        safe_jd = safe_jd[:settings.max_input_length]
+    try:
+        result = ShortlistEngine().shortlist(safe_resume, safe_jd, req.aggressive)
+        return result
     except json.JSONDecodeError:
         raise HTTPException(502, "AI returned invalid response format")

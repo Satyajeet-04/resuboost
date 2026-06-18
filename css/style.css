@@ -436,3 +436,57 @@ select:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
+
+/* --- Shortlist Mode --- */
+#shortlist-badge {
+  text-align: center;
+  padding: 20px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+#shortlist-badge-icon { font-size: 3rem; margin-bottom: 8px; }
+#shortlist-badge-text { font-size: 1.5rem; font-weight: 800; }
+#shortlist-score { font-size: 2rem; font-weight: 700; margin: 8px 0; }
+#shortlist-iterations { margin-bottom: 16px; }
+#shortlist-resume-text {
+  white-space: pre-wrap;
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  max-height: 500px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+}
+#shortlist-changes {
+  background: #fefce8;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 12px 0;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+#shortlist-disclaimer {
+  background: #f0fdf4;
+  padding: 16px;
+  border-radius: 8px;
+  margin: 16px 0;
+  border: 2px solid #22c55e;
+}
+#shortlist-disclaimer label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+#shortlist-disclaimer strong {
+  font-size: 0.9rem;
+}
+#shortlist-disclaimer p {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 4px;
+}

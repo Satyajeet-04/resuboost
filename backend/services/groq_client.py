@@ -16,6 +16,7 @@ MODEL_ROUTES = {
     "resume_scorer": "llama-3.3-70b-versatile", # scoring -> nuanced evaluation
     "interview_questions": "llama-3.3-70b-versatile", # interview prep -> quality
     "ats_breakdown": "llama-3.1-8b-instant",  # ATS analysis -> fast
+    "shortlist": "llama-3.3-70b-versatile",   # shortlist rewrite -> quality
 }
 
 class GroqClient:

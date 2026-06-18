@@ -113,6 +113,14 @@ const api = (() => {
         platform: platform
       });
     }
+
+    async shortlist(resumeText, jdText, aggressive = false) {
+      return this.request('/shortlist', {
+        resume: resumeText,
+        job_description: jdText,
+        aggressive: aggressive
+      });
+    }
   }
 
   return { client: new BackendClient(), RateLimitError };

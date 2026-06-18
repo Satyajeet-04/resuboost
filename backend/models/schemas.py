@@ -148,3 +148,21 @@ class AtsBreakdownRequest(BaseModel):
 
 class AtsBreakdownResponse(BaseModel):
     result: AtsBreakdownResult
+
+# --- Shortlist Mode ---
+class ShortlistRequest(BaseModel):
+    resume: str = Field(..., max_length=50000)
+    job_description: str = Field(..., max_length=50000)
+    aggressive: bool = Field(False, description="Maximum tailoring intensity")
+
+class ShortlistIteration(BaseModel):
+    iteration: int
+    score: int = Field(..., ge=0, le=100)
+    remaining_weaknesses: int = 0
+
+class ShortlistResponse(BaseModel):
+    resume: str
+    final_score: int = Field(..., ge=0, le=100)
+    shortlist_verified: bool
+    iterations: list[ShortlistIteration]
+    changes_summary: str = ""
