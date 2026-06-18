@@ -44,10 +44,19 @@ const api = (() => {
     async atsBreakdown(r, jd, p = 'greenhouse') { return this.request('/ats_breakdown', { resume: r, job_description: jd, platform: p }); }
     async shortlist(r, jd, aggressive = false) { return this.request('/shortlist', { resume: r, job_description: jd, aggressive }); }
 
-    // Phase 3-4: Templates + Recommendations
-    async getTemplates() { return this.request('/templates', null, 'GET'); }
-    async recommendTemplate(r, jd = '') { return this.request('/templates/recommend', { resume: r, job_description: jd }); }
-    async recommend(r, jd) { return this.request('/recommend', { resume: r, job_description: jd }); }
+    // Templates + Recommendations — try API, fallback gracefully (app.js has client-side fallbacks)
+    async getTemplates() { 
+      try { return await this.request('/templates', null, 'GET'); }
+      catch { return { templates: [] }; }
+    }
+    async recommendTemplate(r, jd = '') { 
+      try { return await this.request('/templates/recommend', { resume: r, job_description: jd }); }
+      catch { throw new Error('Backend unavailable'); }
+    }
+    async recommend(r, jd) { 
+      try { return await this.request('/recommend', { resume: r, job_description: jd }); }
+      catch { throw new Error('Backend unavailable'); }
+    }
   }
 
   return { client: new BackendClient(), RateLimitError };
