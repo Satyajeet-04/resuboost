@@ -162,6 +162,7 @@ class ShortlistIteration(BaseModel):
 
 class ShortlistResponse(BaseModel):
     resume: str
+    original_resume: str = ""
     final_score: int = Field(..., ge=0, le=100)
     shortlist_verified: bool
     iterations: list[ShortlistIteration]

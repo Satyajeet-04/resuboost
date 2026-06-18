@@ -9,9 +9,9 @@ class ShortlistEngine:
     def shortlist(self, resume: str, job_description: str, aggressive: bool = False):
         iteration_log = []
         current_resume = resume
+        original_resume = resume
 
         for i in range(self.max_iterations):
-            # Score current resume via direct Groq call (resume_scorer)
             score_result = self._score_resume(current_resume, job_description)
             score_val = score_result.get("overall_score", 0)
             weaknesses = score_result.get("weaknesses", [])
@@ -25,22 +25,21 @@ class ShortlistEngine:
             if score_val >= self.target_score:
                 break
 
-            # Aggressive rewrite targeting weaknesses
             gaps_for_rewrite = weaknesses[:5] if weaknesses else ["general alignment"]
             current_resume = self._aggressive_rewrite(
-                current_resume, job_description, gaps_for_rewrite, aggressive, i == self.max_iterations - 1
+                current_resume, original_resume, job_description, gaps_for_rewrite, aggressive, i == self.max_iterations - 1
             )
 
-        # Final score
         final_score_result = self._score_resume(current_resume, job_description)
         final_score = final_score_result.get("overall_score", 0)
 
         return {
             "resume": current_resume,
+            "original_resume": original_resume,
             "final_score": final_score,
             "shortlist_verified": final_score >= self.target_score,
             "iterations": iteration_log,
-            "changes_summary": self._build_changes_summary(iteration_log)
+            "changes_summary": self._build_changes_summary(iteration_log, original_resume, current_resume)
         }
 
     def _score_resume(self, resume: str, jd: str) -> dict:
@@ -71,16 +70,19 @@ Return JSON:
         except (json.JSONDecodeError, ValueError):
             return {"overall_score": 0, "strengths": [], "weaknesses": []}
 
-    def _aggressive_rewrite(self, resume: str, jd: str, gaps: list, aggressive: bool, final_pass: bool) -> str:
+    def _aggressive_rewrite(self, resume: str, original: str, jd: str, gaps: list, aggressive: bool, final_pass: bool) -> str:
         groq = GroqClient(task_type="shortlist")
 
         intensity = "MAXIMUM" if aggressive or final_pass else "HIGH"
-        prompt = f"""You are an expert ATS resume tailor. Rewrite this resume to PASS ATS SCREENING with near-perfect keyword match.
+        prompt = f"""You are an expert ATS resume tailor. This resume MUST be substantially rewritten — not just keyword-padded.
 
 Job Description:
 {jd[:3000]}
 
-Resume to optimize:
+Original resume (DO NOT keep this exact wording):
+{original[:3000]}
+
+Current version (may already be partially rewritten):
 {resume[:3000]}
 
 Target gaps to address:
@@ -88,24 +90,28 @@ Target gaps to address:
 
 Rewrite intensity: {intensity}
 
-RULES (follow exactly):
-1. Include EVERY relevant keyword and phrase from the job description naturally in the resume
-2. Rewrite ALL bullet points to use JD language - reframe existing experience
-3. Add a professional summary that mirrors the JD's exact language
-4. Skills section must contain ALL matching keywords from the JD (categorized)
-5. Projects section: reframe to highlight JD-relevant technologies and outcomes
-6. For skills not directly present: use "Familiarity with", "Exposure to", "Coursework in", "Working knowledge of" — ONLY if truthfully applicable
-7. NEVER add degrees, certifications, companies, or employment dates that don't exist
-8. Keep ALL factual information (names, dates, education) ACCURATE
-9. Format: single-column, standard sections (Summary, Skills, Experience, Projects, Education), NO tables/columns/graphics
-10. Each bullet must be achievement-oriented with metrics where possible
+YOUR TASK: Rewrite the ENTIRE resume so it is clearly DIFFERENT from the original while keeping ALL facts accurate.
+
+MANDATORY CHANGES:
+1. **Restructure every bullet point** — change sentence structure, verb choices, and emphasis. Example: "Built a full-stack app with React" → "Architected and deployed a full-stack web application leveraging React.js for dynamic frontend interfaces"
+2. **Add a professional summary** (3-4 sentences) that directly mirrors the JD's language
+3. **Categorize skills** into groups matching the JD requirements (e.g., Languages, Frameworks, Cloud, Databases)
+4. **Reframe project descriptions** to highlight JD-relevant outcomes (performance, scale, impact)
+5. Use STRONGER action verbs: Architected, Designed, Implemented, Optimized, Deployed, Engineered, Developed, Built
+6. Every bullet should be noticeably different from the original in wording
+
+RULES:
+- KEEP factual accuracy: same company names, dates, degree names, certifications
+- NEVER add degrees, employment, or credentials that don't exist
+- Format: single-column, standard sections (Summary, Skills, Experience, Projects, Education)
+- NO tables, columns, graphics, or markdown formatting
 
 Return JSON:
 {{
-  "full_resume": "the complete rewritten resume text",
-  "changes_summary": "brief description of key changes made"
+  "full_resume": "the COMPLETE rewritten resume text — must be substantially different wording from original",
+  "changes_summary": "list specific rewording changes made: e.g., 'Added professional summary mirroring JD language', 'Rewrote project bullet to emphasize scalable architecture'"
 }}"""
-        system = "You are an expert ATS resume optimization assistant. Rewrite resumes to maximize ATS keyword match while keeping all information truthful and accurate."
+        system = "You are an expert ATS resume optimization assistant. You MUST substantially reword the resume while keeping facts accurate. Same facts, completely different presentation."
 
         text = groq.generate(prompt, system)
         try:
@@ -115,12 +121,9 @@ Return JSON:
         except (json.JSONDecodeError, ValueError):
             pass
 
-        # If JSON parsing fails, return original
         return resume
 
-    def _build_changes_summary(self, iteration_log: list) -> str:
-        if not iteration_log:
-            return "No changes needed"
+    def _build_changes_summary(self, iteration_log: list, original: str, final: str) -> str:
         lines = []
         for entry in iteration_log:
             lines.append(f"Iteration {entry['iteration']}: Score {entry['score']}/100 ({entry['remaining_weaknesses']} weaknesses remaining)")
@@ -129,4 +132,17 @@ Return JSON:
             lines.append(f"✅ Target reached: {last['score']}/100")
         else:
             lines.append(f"⚠️ Final score: {last['score']}/100 (target: {self.target_score}/100)")
+
+        # Show structural change indicators
+        orig_lines = original.strip().split('\n')
+        final_lines = final.strip().split('\n')
+        lines.append(f"\n📊 Change Stats:")
+        lines.append(f"  Original: {len(orig_lines)} lines, {len(original)} chars")
+        lines.append(f"  Shortlist: {len(final_lines)} lines, {len(final)} chars")
+        lines.append(f"  Difference: {abs(len(final_lines) - len(orig_lines))} line change")
+
+        if len(original) > 0:
+            change_pct = int(abs(len(final) - len(original)) / len(original) * 100)
+            lines.append(f"  Content change: ~{change_pct}% different from original")
+
         return "\n".join(lines)

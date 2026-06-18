@@ -378,6 +378,12 @@ const ui = (() => {
     const isVerified = data.shortlist_verified;
     const finalScore = data.final_score || 0;
 
+    // Original resume in compare panel
+    const origEl = $('#shortlist-original-text');
+    if (origEl && data.original_resume) {
+      origEl.textContent = data.original_resume;
+    }
+
     // Badge
     const badgeEl = $('#shortlist-badge');
     if (badgeEl) {

@@ -282,8 +282,17 @@
         <div id="shortlist-iterations" style="margin-bottom:16px"></div>
 
         <div id="shortlist-resume-container" class="hidden">
-          <h3>Your Shortlist Resume</h3>
-          <pre id="shortlist-resume-text" style="white-space:pre-wrap;background:#f8f9fa;padding:16px;border-radius:8px;font-size:0.9rem;line-height:1.6;max-height:500px;overflow-y:auto;border:1px solid #e5e7eb"></pre>
+          <h3>Compare: Original vs Shortlist Resume</h3>
+          <div class="compare-grid">
+            <div class="compare-col" style="background:#fef2f2">
+              <h4 style="color:#dc2626">Original Resume</h4>
+              <pre id="shortlist-original-text" style="white-space:pre-wrap;font-size:0.8rem;line-height:1.5;max-height:400px;overflow-y:auto;background:transparent;border:none;padding:0;font-family:inherit"></pre>
+            </div>
+            <div class="compare-col" style="background:#f0fdf4">
+              <h4 style="color:#16a34a">Shortlist Optimized</h4>
+              <pre id="shortlist-resume-text" style="white-space:pre-wrap;font-size:0.8rem;line-height:1.5;max-height:400px;overflow-y:auto;background:transparent;border:none;padding:0;font-family:inherit"></pre>
+            </div>
+          </div>
           <div id="shortlist-changes" style="background:#fefce8;padding:12px;border-radius:8px;margin:12px 0;font-size:0.85rem;white-space:pre-wrap"></div>
 
           <div id="shortlist-disclaimer" style="background:#f0fdf4;padding:16px;border-radius:8px;margin:16px 0;border:2px solid #22c55e">
