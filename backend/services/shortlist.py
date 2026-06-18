@@ -93,7 +93,7 @@ Example: ["Python", "AWS", "Microservices", "System Design", "CI/CD", "Docker", 
         text = groq.generate(prompt, system)
         result = _robust_json_parse(text)
         if isinstance(result, list):
-            return result
+            return [k for k in result if isinstance(k, str) and len(k) > 0]
         # Fallback: simple extraction
         tech_words = re.findall(r'\b[A-Z][A-Za-z0-9+#.]+(?:\s*[A-Z][A-Za-z0-9+#.]+)*\b', jd)
         return list(set(w for w in tech_words if len(w) > 1))[:20]
@@ -186,7 +186,9 @@ Return JSON:
                                  jd_keywords: list, gaps: list, final_pass: bool) -> str:
         groq = GroqClient(task_type="shortlist")
 
-        missing_kws = [k for k in jd_keywords if k.lower() not in resume.lower()]
+        # Filter to only valid strings (AI sometimes returns null entries)
+        valid_kws = [k for k in jd_keywords if isinstance(k, str) and len(k) > 0]
+        missing_kws = [k for k in valid_kws if k.lower() not in resume.lower()]
 
         prompt = f"""You are an expert ATS resume optimizer. Your job: REWRITE this resume to score HIGH on ATS filters.
 
@@ -234,14 +236,14 @@ Return JSON:
         if isinstance(result, dict):
             rewritten = result.get("full_resume", resume)
             # Ensure at least SOME keywords made it
-            for kw in jd_keywords[:10]:
+            for kw in valid_kws[:10]:
                 if kw.lower() not in rewritten.lower():
                     rewritten = self._inject_keyword(rewritten, kw)
             return rewritten
 
         # Fallback: inject keywords minimally
         result = resume
-        for kw in jd_keywords[:10]:
+        for kw in valid_kws[:10]:
             if kw.lower() not in result.lower():
                 result = self._inject_keyword(result, kw)
         return result
@@ -251,6 +253,8 @@ Return JSON:
     # ------------------------------------------------------------------
     def _inject_keyword(self, resume: str, keyword: str) -> str:
         """Inject a missing keyword into skills + experience bullets."""
+        if not isinstance(keyword, str) or len(keyword) == 0:
+            return resume
         if keyword.lower() in resume.lower():
             return resume
         
